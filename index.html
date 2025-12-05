@@ -115,10 +115,12 @@
 
     <div class="container">
         <h1>📦 Product Setup Assistant</h1>
+        
+        ---
 
         <div id="step-scan" class="step">
             <h2>1. Enter Product Model IDs</h2>
-            <p>Please type the model ID found on each product box label one at a time.</p>
+            <p>Please type the model ID found on each product box label one at a time. Entering **C100** or **C-100** will both work.</p>
 
             <input type="text" id="manualInput" placeholder="Type Model ID (e.g., BMRX-200)">
             <button id="addInputBtn">➕ Add Product ID</button>
@@ -127,6 +129,8 @@
 
             <button id="doneScanningBtn" disabled>✅ Done Entering (0 products)</button>
         </div>
+
+        ---
 
         <div id="step-verify" class="step hidden">
             <h2>2. Verify Product List</h2>
@@ -144,6 +148,8 @@
                 <button id="applyCorrectionBtn">Apply Correction & Verify</button>
             </div>
         </div>
+
+        ---
 
         <div id="step-instructions" class="step hidden">
             <h2>3. Your Custom Instructions</h2>
@@ -165,38 +171,42 @@
     </div>
 
     <script>
-        // --- 1. FICTIONAL PRODUCT DATA SIMULATION (Using provided models/links) ---
+        // --- 1. PRODUCT DATA (Real Examples and Links) ---
+        // NOTE: Keys are hyphen/space-free for matching the normalized user input.
         const FICTIONAL_PRODUCTS = {
-            'BMRX-200': {
+            'BMRX200': { 
                 name: 'BMRX Rotary Level Indicator',
+                displayID: 'BMRX-200', // Official ID for display
                 manual: 'https://support.binmaster.com/hc/en-us/articles/37573907689876-BMRX-Rotary-Manuals',
-                wiring: 'https://support.binmaster.com/hc/en-us/articles/36000000000-Rotary-Wiring-Diagram', // Fictional specific wiring link
+                wiring: 'https://support.binmaster.com/hc/en-us/articles/36000000000-Rotary-Wiring-Diagram', // Placeholder for specific wiring link
                 guide: 'Silo Measuring Guide A: Rotary Installation'
             },
-            'NCR-86': {
+            'NCR86': { 
                 name: 'NCR-86 Continuous Level Transmitter',
+                displayID: 'NCR-86', // Official ID for display
                 manual: 'https://support.binmaster.com/hc/en-us/articles/37573629903124-Manual-NCR-86-and-NCR-80',
-                wiring: 'https://support.binmaster.com/hc/en-us/articles/36000000001-Transmitter-Power-Data-Wiring', // Fictional specific wiring link
+                wiring: 'https://support.binmaster.com/hc/en-us/articles/36000000001-Transmitter-Power-Data-Wiring', // Placeholder for specific wiring link
                 guide: 'Silo Measuring Guide B: Through-Air Radar Setup'
             },
-            'C-100': {
+            'C100': { 
                 name: 'C-100 Tilt Switch',
+                displayID: 'C-100', // Official ID for display
                 manual: 'https://support.binmaster.com/hc/en-us/articles/37572698326164-C100-Manuals',
-                wiring: 'https://support.binmaster.com/hc/en-us/articles/36000000002-Tilt-Switch-Wiring-Diagram', // Fictional specific wiring link
+                wiring: 'https://support.binmaster.com/hc/en-us/articles/36000000002-Tilt-Switch-Wiring-Diagram', // Placeholder for specific wiring link
                 guide: 'N/A'
             },
-            // Added another generic product to test the "N/A" and mixing models
-            'CABLE-50M': {
+            'CABLE50M': { // Example of another common item
                 name: '50M Interconnect Cable',
+                displayID: 'CABLE-50M',
                 manual: 'N/A',
                 wiring: 'N/A',
                 guide: 'N/A'
             }
         };
 
-        let currentIDs = [];
+        let currentIDs = []; // Stores the standardized (cleaned) keys
         let finalProducts = [];
-        let textReportContent = ''; // Variable to hold the clean text report
+        let textReportContent = '';
 
         // --- 2. HTML ELEMENT REFERENCES ---
         const $ = id => document.getElementById(id);
@@ -229,14 +239,15 @@
         // --- 3. CORE FUNCTIONS ---
 
         function updateScannedIDsDisplay() {
+            // Displaying the standardized ID here for simplicity
             scannedIDs.textContent = currentIDs.length > 0 ? currentIDs.join(', ') : 'None';
             doneScanningBtn.disabled = currentIDs.length === 0;
             doneScanningBtn.textContent = `✅ Done Entering (${currentIDs.length} products)`;
         }
 
         function validateAndAddID(id) {
-            // Simple cleanup/parsing: removes spaces, converts to uppercase
-            const cleanID = id.trim().toUpperCase().replace(/[^A-Z0-9-]/g, ''); 
+            // 1. Clean the input: Convert to uppercase, remove ALL spaces, and remove ALL hyphens.
+            const cleanID = id.trim().toUpperCase().replace(/[-\s]/g, ''); 
             
             if (!cleanID) {
                 alert("Please enter a valid product ID.");
@@ -245,7 +256,8 @@
                 alert(`ID "${cleanID}" already added.`);
                 return false;
             } else {
-                currentIDs.push(cleanID);
+                // Store the cleaned, standardized ID for lookup
+                currentIDs.push(cleanID); 
                 updateScannedIDsDisplay();
                 return true;
             }
@@ -253,9 +265,10 @@
 
         function compileProductList(ids) {
             finalProducts = ids.map(id => {
-                const productInfo = FICTIONAL_PRODUCTS[id];
+                // Use the cleaned ID (e.g., 'C100') to look up product data
+                const productInfo = FICTIONAL_PRODUCTS[id]; 
                 return {
-                    id: id,
+                    id: id, // The standardized ID (e.g., C100)
                     found: !!productInfo, 
                     name: productInfo ? productInfo.name : `[ERROR: Model ${id} not recognized]`,
                     data: productInfo
@@ -265,11 +278,9 @@
             // Render the list for verification
             finalProductList.innerHTML = finalProducts.map(p => 
                 `<div class="product-list-item" style="color: ${p.found ? 'green' : 'red'};">
-                    <strong>${p.name}</strong> (${p.id})
-                </div>`
+                    <strong>${p.name}</strong> (${p.data ? p.data.displayID : p.id}) </div>`
             ).join('');
             
-            // Move to the verification step
             stepScan.classList.add('hidden');
             stepVerify.classList.remove('hidden');
         }
@@ -280,15 +291,15 @@
             let guides = new Set();
             let html = '';
             let textReport = '--- Product Setup Instructions ---\n';
-            textReport += `Products Verified: ${products.filter(p => p.found).map(p => p.name).join(', ')}\n\n`;
+            textReport += `Products Verified: ${products.filter(p => p.found).map(p => p.data.displayID).join(', ')}\n\n`;
 
 
             // Aggregate data only from recognized products
             products.filter(p => p.found).forEach(p => {
                 // Manual Links
-                if (p.data.manual && p.data.manual !== 'N/A') manualLinks.add(`<li><a href="${p.data.manual}" target="_blank">${p.data.name} Manual Link</a></li>`);
+                if (p.data.manual && p.data.manual !== 'N/A') manualLinks.add(`<li><a href="${p.data.manual}" target="_blank">${p.data.displayID} Manual Link</a></li>`);
                 // Wiring Examples
-                if (p.data.wiring && p.data.wiring !== 'N/A') wiringExamples.add(`<li><a href="${p.data.wiring}" target="_blank">Wiring Example Diagram: ${p.data.name}</a></li>`);
+                if (p.data.wiring && p.data.wiring !== 'N/A') wiringExamples.add(`<li><a href="${p.data.wiring}" target="_blank">Wiring Example Diagram: ${p.data.displayID}</a></li>`);
                 // Silo/Bin Guides
                 if (p.data.guide && p.data.guide !== 'N/A') guides.add(`<li>${p.data.guide}</li>`);
             });
@@ -314,7 +325,7 @@
                 instructionsContent.innerHTML = html;
             }
             
-            textReportContent = textReport; // Save the clean text version globally
+            textReportContent = textReport;
             
             stepVerify.classList.add('hidden');
             stepInstructions.classList.remove('hidden');
@@ -353,18 +364,30 @@
 
         listIncorrectBtn.addEventListener('click', () => {
             correctionArea.classList.remove('hidden');
-            correctionInput.value = currentIDs.join(', '); // Pre-fill with current IDs
+            // Pre-fill correction input using the official display IDs, not the clean keys
+            const displayIDs = finalProducts.filter(p => p.found).map(p => p.data.displayID).join(', ');
+            correctionInput.value = displayIDs; 
         });
 
         applyCorrectionBtn.addEventListener('click', () => {
-            // Clean and process the comma-separated list
-            const correctedIDs = correctionInput.value.split(',').map(id => id.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '')).filter(id => id);
+            // Take the user's corrected comma-separated list
+            const rawCorrectedIDs = correctionInput.value.split(',').filter(id => id);
+            
+            let correctedIDs = [];
+            // Re-normalize each input from the correction box
+            for (const id of rawCorrectedIDs) {
+                // Normalize input before checking/adding
+                const cleanID = id.trim().toUpperCase().replace(/[-\s]/g, ''); 
+                if (cleanID && !correctedIDs.includes(cleanID)) {
+                    correctedIDs.push(cleanID);
+                }
+            }
             
             if (correctedIDs.length > 0) {
-                currentIDs = correctedIDs; // Overwrite current list with corrected list
-                updateScannedIDsDisplay(); // Update display for current IDs
+                currentIDs = correctedIDs; // Overwrite current list with corrected standardized keys
+                updateScannedIDsDisplay(); 
                 compileProductList(currentIDs); // Re-run verification step
-                correctionArea.classList.add('hidden'); // Hide the form
+                correctionArea.classList.add('hidden'); 
             } else {
                 alert("The corrected list cannot be empty.");
             }
