@@ -66,15 +66,6 @@
             box-sizing: border-box;
         }
 
-        /* Voice specific styling */
-        .voice-btn {
-            background-color: #28a745;
-        }
-
-        .voice-btn:hover {
-            background-color: #1e7e34;
-        }
-
         .product-list-item {
             padding: 8px;
             border-bottom: 1px dashed #eee;
@@ -103,21 +94,18 @@
 <body>
 
     <div class="container">
-        <h1>📦 Product Setup Assistant</h1>
+        <h1>📦 Silo Monitor Setup Assistant</h1>
 
         <div id="step-scan" class="step">
             <h2>1. Enter Product Label IDs</h2>
-            <p>Please enter the ID from one box at a time. You can use your voice or type it manually.</p>
+            <p>Please type the unique ID found on each product box label one at a time. The system will recognize the ID and compile your list.</p>
 
-            <button id="voiceInputBtn" class="voice-btn">🎤 Speak Label ID</button>
-            <span id="voiceStatus"></span>
-
-            <input type="text" id="manualInput" placeholder="Type Label ID (e.g., SENSOR-V2-XYZ)">
+            <input type="text" id="manualInput" placeholder="Type Label ID (e.g., LEVEL-S-100)">
             <button id="addInputBtn">➕ Add Product ID</button>
             
-            <p><strong>IDs Scanned:</strong> <span id="scannedIDs">None</span></p>
+            <p><strong>IDs Entered:</strong> <span id="scannedIDs">None</span></p>
 
-            <button id="doneScanningBtn" disabled>✅ Done Scanning (0 products)</button>
+            <button id="doneScanningBtn" disabled>✅ Done Entering (0 products)</button>
         </div>
 
         <div id="step-verify" class="step hidden">
@@ -131,7 +119,7 @@
 
             <div id="correctionArea" class="correction-form hidden">
                 <h3>Correction</h3>
-                <p>Please enter the corrected, comma-separated list of ALL label IDs (e.g., SENSOR-V2-XYZ, MODULE-A4):</p>
+                <p>Please enter the corrected, comma-separated list of ALL label IDs (e.g., LEVEL-S-100, GATEWAY-W-500):</p>
                 <input type="text" id="correctionInput" placeholder="Enter corrected list of IDs">
                 <button id="applyCorrectionBtn">Apply Correction & Verify</button>
             </div>
@@ -139,4 +127,256 @@
 
         <div id="step-instructions" class="step hidden">
             <h2>3. Your Custom Instructions</h2>
-            <p>Based on your products, here are the
+            <p>Based on your products, here are the resources you need:</p>
+            
+            <div id="instructionsContent">
+                </div>
+
+            <button id="goToEmailBtn">➡️ Continue to Email Step</button>
+        </div>
+
+        <div id="step-email" class="step hidden">
+            <h2>4. Email Instructions for Later</h2>
+            <p>Would you like this information and links emailed to you for easy reference?</p>
+            
+            <input type="email" id="emailInput" placeholder="Your Email Address">
+            <button id="sendEmailBtn">📧 Send Email</button>
+            
+            <p id="emailStatus" style="font-weight: bold; margin-top: 10px;"></p>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. FICTIONAL PRODUCT DATA SIMULATION ---
+        // A "Silo Monitoring System" is a good test product as it requires multiple components 
+        // (sensor, gateway, cable) and specific installation instructions (silo measuring).
+        const FICTIONAL_PRODUCTS = {
+            'LEVEL-S-100': {
+                name: 'High-Accuracy Level Sensor',
+                manual: 'https://test-links.com/manual-level-sensor.pdf',
+                wiring: 'https://test-links.com/diagram-level-sensor-std.png',
+                guide: 'Measurement Guide: Conical Silo Headspace'
+            },
+            'GATEWAY-W-500': {
+                name: 'Wireless Data Gateway',
+                manual: 'https://test-links.com/manual-gateway-w500.pdf',
+                wiring: 'https://test-links.com/diagram-power-data-gateway.png',
+                guide: 'N/A'
+            },
+            'CABLE-20M': {
+                name: '20M Power/Data Cable',
+                manual: 'N/A',
+                wiring: 'N/A',
+                guide: 'N/A'
+            },
+            'TEMP-PROBE-01': {
+                name: 'Temperature/Humidity Probe',
+                manual: 'https://test-links.com/manual-temp-probe.pdf',
+                wiring: 'https://test-links.com/diagram-level-sensor-std.png',
+                guide: 'Measurement Guide: Flat-Bottom Bin Depth'
+            }
+        };
+
+        let currentIDs = [];
+        let finalProducts = [];
+
+        // --- 2. HTML ELEMENT REFERENCES ---
+        const $ = id => document.getElementById(id);
+
+        // Steps
+        const stepScan = $('step-scan');
+        const stepVerify = $('step-verify');
+        const stepInstructions = $('step-instructions');
+        const stepEmail = $('step-email');
+
+        // Scan/Input Elements
+        const manualInput = $('manualInput');
+        const addInputBtn = $('addInputBtn');
+        const scannedIDs = $('scannedIDs');
+        const doneScanningBtn = $('doneScanningBtn');
+
+        // Verification Elements
+        const finalProductList = $('finalProductList');
+        const listCorrectBtn = $('listCorrectBtn');
+        const listIncorrectBtn = $('listIncorrectBtn');
+        const correctionArea = $('correctionArea');
+        const correctionInput = $('correctionInput');
+        const applyCorrectionBtn = $('applyCorrectionBtn');
+
+        // Instructions Elements
+        const instructionsContent = $('instructionsContent');
+        const goToEmailBtn = $('goToEmailBtn');
+
+        // Email Elements
+        const emailInput = $('emailInput');
+        const sendEmailBtn = $('sendEmailBtn');
+        const emailStatus = $('emailStatus');
+
+
+        // --- 3. CORE FUNCTIONS ---
+
+        function updateScannedIDsDisplay() {
+            scannedIDs.textContent = currentIDs.length > 0 ? currentIDs.join(', ') : 'None';
+            doneScanningBtn.disabled = currentIDs.length === 0;
+            doneScanningBtn.textContent = `✅ Done Entering (${currentIDs.length} products)`;
+        }
+
+        function validateAndAddID(id) {
+            // Simple cleanup/parsing: removes spaces, converts to uppercase
+            const cleanID = id.trim().toUpperCase().replace(/[^A-Z0-9-]/g, ''); 
+            
+            if (!cleanID) {
+                alert("Please enter a valid product ID.");
+                return false;
+            } else if (currentIDs.includes(cleanID)) {
+                alert(`ID "${cleanID}" already added.`);
+                return false;
+            } else {
+                currentIDs.push(cleanID);
+                updateScannedIDsDisplay();
+                return true;
+            }
+        }
+
+        function compileProductList(ids) {
+            finalProducts = ids.map(id => {
+                const productInfo = FICTIONAL_PRODUCTS[id];
+                return {
+                    id: id,
+                    // Check if the ID exists in our fictional database
+                    found: !!productInfo, 
+                    name: productInfo ? productInfo.name : `[ERROR: ID ${id} not recognized]`,
+                    data: productInfo
+                };
+            });
+            
+            // Render the list for verification
+            finalProductList.innerHTML = finalProducts.map(p => 
+                `<div class="product-list-item" style="color: ${p.found ? 'green' : 'red'};">
+                    <strong>${p.name}</strong> (${p.id})
+                </div>`
+            ).join('');
+            
+            // Move to the verification step
+            stepScan.classList.add('hidden');
+            stepVerify.classList.remove('hidden');
+        }
+
+        function generateInstructions(products) {
+            let manualLinks = new Set();
+            let wiringExamples = new Set();
+            let guides = new Set();
+            let html = '';
+
+            // Aggregate data only from recognized products
+            products.filter(p => p.found).forEach(p => {
+                if (p.data.manual && p.data.manual !== 'N/A') manualLinks.add(`<li><a href="${p.data.manual}" target="_blank">${p.data.name} Operation Manual</a></li>`);
+                if (p.data.wiring && p.data.wiring !== 'N/A') wiringExamples.add(`<li><a href="${p.data.wiring}" target="_blank">Wiring Example Diagram</a></li>`);
+                if (p.data.guide && p.data.guide !== 'N/A') guides.add(`<li>${p.data.guide} Instructions</li>`);
+            });
+
+            if (manualLinks.size > 0) {
+                html += '<h3>📚 Manuals & Product Links</h3><ul>' + Array.from(manualLinks).join('') + '</ul>';
+            }
+            if (wiringExamples.size > 0) {
+                html += '<h3>🔌 Wiring Diagrams</h3><ul>' + Array.from(wiringExamples).join('') + '</ul>';
+            }
+             if (guides.size > 0) {
+                html += '<h3>📏 Silo/Bin Measurement Guide</h3><ul>' + Array.from(guides).join('') + '</ul>';
+            }
+
+            if (html === '') {
+                 instructionsContent.innerHTML = '<p style="color:red;">No specific instructions found for the approved list of products. Please contact support.</p>';
+            } else {
+                instructionsContent.innerHTML = html;
+            }
+            
+            stepVerify.classList.add('hidden');
+            stepInstructions.classList.remove('hidden');
+        }
+
+
+        // --- 4. EVENT LISTENERS AND STEP LOGIC ---
+
+        // A. Manual Input
+        addInputBtn.addEventListener('click', () => {
+            if (validateAndAddID(manualInput.value)) {
+                manualInput.value = '';
+            }
+        });
+
+        manualInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addInputBtn.click();
+            }
+        });
+
+        // B. Done Scanning
+        doneScanningBtn.addEventListener('click', () => {
+            compileProductList(currentIDs);
+        });
+
+        // C. Verification Step
+        listCorrectBtn.addEventListener('click', () => {
+            // Filter out any IDs that were not recognized before generating instructions
+            const verifiedIDs = finalProducts.filter(p => p.found).map(p => p.id);
+            if (verifiedIDs.length > 0) {
+                 generateInstructions(finalProducts);
+            } else {
+                alert("No recognizable products were found. Please use the 'No' button to manually correct the list.");
+            }
+        });
+
+        listIncorrectBtn.addEventListener('click', () => {
+            correctionArea.classList.remove('hidden');
+            correctionInput.value = currentIDs.join(', '); // Pre-fill with current IDs
+        });
+
+        applyCorrectionBtn.addEventListener('click', () => {
+            // Clean and process the comma-separated list
+            const correctedIDs = correctionInput.value.split(',').map(id => id.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '')).filter(id => id);
+            
+            if (correctedIDs.length > 0) {
+                currentIDs = correctedIDs; // Overwrite current list with corrected list
+                updateScannedIDsDisplay(); // Update display for current IDs
+                compileProductList(currentIDs); // Re-run verification step
+                correctionArea.classList.add('hidden'); // Hide the form
+            } else {
+                alert("The corrected list cannot be empty.");
+            }
+        });
+        
+        // D. Instructions Step
+        goToEmailBtn.addEventListener('click', () => {
+            stepInstructions.classList.add('hidden');
+            stepEmail.classList.remove('hidden');
+        });
+
+        // E. Email Step (Simulated)
+        sendEmailBtn.addEventListener('click', () => {
+            const email = emailInput.value.trim();
+            // Basic email regex validation
+            if (email && /^\S+@\S+\.\S+$/.test(email)) {
+                // *** SIMULATED EMAIL SENDING ***
+                emailStatus.style.color = 'blue';
+                emailStatus.textContent = `Sending instructions to ${email}...`;
+
+                setTimeout(() => {
+                    emailStatus.style.color = 'green';
+                    emailStatus.innerHTML = `✅ **Success!** Instructions have been sent to ${email}. Thank you!`;
+                    sendEmailBtn.disabled = true;
+                    emailInput.disabled = true;
+                }, 2000); // Simulate network delay
+                
+            } else {
+                emailStatus.style.color = 'red';
+                emailStatus.textContent = 'Please enter a valid email address.';
+            }
+        });
+
+        // Initial setup
+        updateScannedIDsDisplay();
+    </script>
+</body>
+</html>
