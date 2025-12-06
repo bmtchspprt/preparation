@@ -3,8 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Verification & Instructions</title>
+    <title>BinMaster Setup</title>
     <style>
+        /* Define the BinMaster Maroon color */
+        :root {
+            --binmaster-maroon: #800000;
+        }
+
         /* Responsive CSS for Mobile/PC Friendliness */
         body {
             font-family: Arial, sans-serif;
@@ -23,9 +28,33 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        h1 {
-            color: #0056b3;
+        /* Styling for the main headline */
+        .main-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            text-align: center; /* Fallback for older browsers */
+        }
+
+        .main-header h1 {
+            color: var(--binmaster-maroon); /* Maroon headline */
             text-align: center;
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .main-header span {
+            margin-right: 10px;
+            font-size: 30px;
+            line-height: 1; /* Aligns the icon better */
+        }
+
+        h2 {
+            font-size: 20px;
+            color: #555;
+            margin-bottom: 10px;
         }
 
         .step {
@@ -35,8 +64,9 @@
             border-radius: 6px;
         }
 
+        /* Styling for all buttons, changing default to the maroon color */
         button {
-            background-color: #007bff;
+            background-color: var(--binmaster-maroon); /* Maroon Button */
             color: white;
             padding: 10px 15px;
             border: none;
@@ -45,10 +75,11 @@
             font-size: 16px;
             margin: 5px 0;
             width: 100%; /* Full width on mobile */
+            transition: background-color 0.3s ease;
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: #a00000; /* Darker maroon on hover */
         }
 
         button:disabled {
@@ -56,6 +87,15 @@
             cursor: not-allowed;
         }
         
+        /* Specific style for the 'Done Entering' button - using a different color for completion */
+        #doneScanningBtn {
+            background-color: #007bff; /* Keep blue for "Done" or choose another complementary color */
+        }
+
+        #doneScanningBtn:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+
         /* Specific style for the copy button */
         #copyInstructionsBtn {
             background-color: #28a745;
@@ -108,37 +148,35 @@
                 width: auto;
                 margin-right: 10px;
             }
+            #manualInput {
+                width: calc(100% - 150px); /* Adjust width to fit button on the same line */
+                margin-right: 10px;
+            }
+            /* Style to put the input and add button inline on desktop */
+            #step-scan > div {
+                display: flex;
+                align-items: center;
+            }
+            #addInputBtn {
+                flex-shrink: 0;
+                width: 140px; /* Fixed width for the button */
+                margin: 10px 0 20px 0;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>📦 Product Setup Assistant</h1>
+        
+        <div class="main-header">
+            <span>&#x1F4E6;</span> <h1>BinMaster Setup</h1>
+        </div>
         
         ---
 
         <div id="step-scan" class="step">
-            <h2>1. Enter Product Model IDs</h2>
-            <p>Please type the model ID found on each product box label one at a time. Entering **C100** or **C-100** will both work.</p>
+            <h2>Enter Model</h2>
+            <p>Type the **model** found on each box label, **one at a time**.</p>
 
-            <input type="text" id="manualInput" placeholder="Type Model ID (e.g., BMRX-200)">
-            <button id="addInputBtn">➕ Add Product ID</button>
-            
-            <p><strong>IDs Entered:</strong> <span id="scannedIDs">None</span></p>
-
-            <button id="doneScanningBtn" disabled>✅ Done Entering (0 products)</button>
-        </div>
-
-        ---
-
-        <div id="step-verify" class="step hidden">
-            <h2>2. Verify Product List</h2>
-            <p>Please confirm the following product list matches the items you received:</p>
-            
-            <div id="finalProductList"></div>
-
-            <button id="listCorrectBtn">✅ Yes, the list is correct</button>
-            <button id="listIncorrectBtn">❌ No, I need to correct it</button>
-
-            <div
+            <div> <input type="text" id="manual
