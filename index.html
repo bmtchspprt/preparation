@@ -193,6 +193,32 @@
     </div>
 
     <script>
+        // Product to manual URL mapping
+        const manualLinks = {
+            'NCR': 'https://support.binmaster.com/hc/en-us/articles/44071923152660-App-NCR-80-NCR-86',
+            'NCR-80': 'https://support.binmaster.com/hc/en-us/articles/44071923152660-App-NCR-80-NCR-86',
+            'NCR-86': 'https://support.binmaster.com/hc/en-us/articles/44071923152660-App-NCR-80-NCR-86',
+            'NR': 'https://support.binmaster.com/hc/en-us/articles/44071923152660-App-NCR-80-NCR-86',
+            'CNCR': 'https://support.binmaster.com/hc/en-us/articles/44072020292756-App-CNCR',
+            '3D SCANNER': 'https://support.binmaster.com/hc/en-us/articles/44072072073492-App-3D-Scanner',
+            'SMARTBOB': 'https://support.binmaster.com/hc/en-us/articles/44072086648084-App-SmartBob',
+            'DPM': 'https://support.binmaster.com/hc/en-us/articles/44072093609492-App-DPM',
+            'C-100': 'https://support.binmaster.com/hc/en-us/articles/44072141126676-App-C-100',
+            'GATEWAY': 'https://support.binmaster.com/hc/en-us/articles/44072175258132-App-Gateway',
+            'AEH': 'https://support.binmaster.com/hc/en-us/articles/44072151453716-App-HCM-LTR-AEH',
+            'LTR': 'https://support.binmaster.com/hc/en-us/articles/44072151453716-App-HCM-LTR-AEH',
+            'HCM': 'https://support.binmaster.com/hc/en-us/articles/44072151453716-App-HCM-LTR-AEH',
+            'BINCLOUD': 'https://support.binmaster.com/hc/en-us/articles/44072238601620-App-Software',
+            'BINVENTORY': 'https://support.binmaster.com/hc/en-us/articles/44072238601620-App-Software',
+            '3D VISION': 'https://support.binmaster.com/hc/en-us/articles/44072238601620-App-Software'
+        };
+        
+        // Function to get manual URL for a product
+        function getManualUrl(product) {
+            const key = product.toUpperCase().trim();
+            return manualLinks[key] || null;
+        }
+        
         // Basic functionality to demonstrate the interface
         const scannedProducts = [];
         const manualInput = document.getElementById('manualInput');
@@ -243,20 +269,30 @@
             document.getElementById('finalProductList').classList.add('hidden');
             document.getElementById('listCorrectBtn').classList.add('hidden');
             document.getElementById('listIncorrectBtn').classList.add('hidden');
+            document.getElementById('step-verify').classList.add('hidden');
             document.getElementById('step-complete').classList.remove('hidden');
             
             // Generate product list with manual links
             const productListWithLinks = document.getElementById('finalProductListWithLinks');
             productListWithLinks.innerHTML = scannedProducts.map(product => {
-                const manualUrl = `https://binmaster.com/manuals/${product.replace(/\s+/g, '-')}`;
-                return `
-                    <div class="product-list-item">
-                        📦 <strong>${product}</strong><br>
-                        <a href="${manualUrl}" target="_blank" style="color: var(--binmaster-maroon); text-decoration: none;">
-                            📖 View Manual
-                        </a>
-                    </div>
-                `;
+                const manualUrl = getManualUrl(product);
+                if (manualUrl) {
+                    return `
+                        <div class="product-list-item">
+                            📦 <strong>${product}</strong><br>
+                            <a href="${manualUrl}" target="_blank" style="color: var(--binmaster-maroon); text-decoration: none;">
+                                📖 View Manual
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="product-list-item">
+                            📦 <strong>${product}</strong><br>
+                            <span style="color: #999;">Manual not found</span>
+                        </div>
+                    `;
+                }
             }).join('');
         });
 
@@ -267,8 +303,12 @@
         
         document.getElementById('copyListBtn').addEventListener('click', () => {
             const listText = scannedProducts.map(product => {
-                const manualUrl = `https://binmaster.com/manuals/${product.replace(/\s+/g, '-')}`;
-                return `${product}\nManual: ${manualUrl}`;
+                const manualUrl = getManualUrl(product);
+                if (manualUrl) {
+                    return `${product}\nManual: ${manualUrl}`;
+                } else {
+                    return `${product}\nManual: Not found`;
+                }
             }).join('\n\n');
             
             navigator.clipboard.writeText(listText).then(() => {
