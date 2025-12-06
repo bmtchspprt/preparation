@@ -1,41 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Verification & Instructions</title>
-    <style>
-        /* Responsive CSS for Mobile/PC Friendliness */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f7f6;
-            color: #333;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BinMaster Setup</title>
+    <style>
+        /* Define the BinMaster Maroon color */
+        :root {
+            --binmaster-maroon: #c02a2a;
+        }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
+        /* Responsive CSS for Mobile/PC Friendliness */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            text-align: center;
+        }
 
-        h1 {
-            color: #0056b3;
-            text-align: center;
-        }
+        .container {
+            max-width: 400px; /* Mobile-friendly width */
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
 
-        .step {
-            margin-bottom: 30px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
+        /* Updated H1 style for the Box Icon and Maroon text */
+        h1 {
+            color: var(--binmaster-maroon); /* Maroon headline */
+            text-align: center;
+            /* Using flex to stack icon and text vertically */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
 
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px
+        /* Style for the Box Icon in the H1 */
+        h1 span {
+            margin-bottom: 10px;
+            font-size: 40px;
+            line-height: 1; 
+        }
+
+        /* Updated button styles - alternating colors */
+        button {
+            background-color: var(--binmaster-maroon);
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px auto;
+            width: 100%;
+            transition: background-color 0.3s ease;
+            display: block;
+        }
+        
+        button:nth-of-type(even) {
+            background-color: #999999; /* 60% gray */
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Specific style for the copy button */
+        #copyListBtn {
+            background-color: #c02a2a;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        #copyListBtn:hover {
+            opacity: 0.9;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0 20px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        input[type="text"]::placeholder {
+            color: #808080;
+        }
+
+        .product-list-item {
+            padding: 8px;
+            border-bottom: 1px dashed #eee;
+            text-align: center;
+        }
+
+        .correction-form {
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .final-step-note {
+            background-color: #262626; /* 15% gray */
+            border-left: 5px solid var(--binmaster-maroon);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive Breakpoint for larger screens (PC) */
+        @media (min-width: 600px) {
+            button {
+                width: auto;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+        
+        h2 {
+            text-align: center;
+        }
+        
+        p {
+            text-align: center;
+        }
+        
+        .step {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1><span>📦</span>BinMaster Setup</h1>
+        
+        <hr>
+
+        <div id="step-scan" class="step">
+            <h2>Enter Model</h2>
+            <p>Type the <strong>model</strong> found on each box label, <strong>one at a time</strong>.</p>
+            <input type="text" id="manualInput" placeholder="e.g., NCR-86, CNCR-190, Gateway">
+            
+            <button id="addInputBtn">➕ Add Product</button>
+            
+            <p><strong>IDs Entered:</strong> <span id="scannedIDs">None</span></p>
+
+            <button id="doneScanningBtn" disabled>✅ Done Entering (0 products)</button>
+        </div>
+
+        <hr>
+
+        <div id="step-verify" class="step hidden">
+            <div id="finalProductList"></div>
+
+            <button id="listCorrectBtn">✅ Yes, the list is correct</button>
+            <button id="listIncorrectBtn">❌ No, I need to correct it</button>
+        </div>
+        
+        <div id="step-complete" class="step hidden">
+            <h2>Product List with Related Links</h2>
+            
+            <div id="finalProductListWithLinks"></div>
+            
+            <button id="copyListBtn">📋 Copy List</button>
+            
+            <p style="margin-top: 15px; font-size: 14px; color: #666;">
+                <strong>📧 Save for future reference:</strong><br>
+                Copy this list and paste it into an email to keep a record of your products and their manuals.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Basic functionality to demonstrate the interface
+        const scannedProducts = [];
+        const manualInput = document.getElementById('manualInput');
+        const addInputBtn = document.getElementById('addInputBtn');
+        const scannedIDsDisplay = document.getElementById('scannedIDs');
+        const doneScanningBtn = document.getElementById('doneScanningBtn');
+
+        addInputBtn.addEventListener('click', () => {
+            const value = manualInput.value.trim();
+            if (value) {
+                // Auto-detect multiple products (separated by comma, newline, or semicolon)
+                const products = value.split(/[,;\n]+/).map(p => p.trim()).filter(p => p);
+                scannedProducts.push(...products);
+                manualInput.value = '';
+                updateDisplay();
+            }
+        });
+
+        manualInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addInputBtn.click();
+            }
+        });
+
+        function updateDisplay() {
+            if (scannedProducts.length > 0) {
+                scannedIDsDisplay.textContent = scannedProducts.join(', ');
+                doneScanningBtn.disabled = false;
+                doneScanningBtn.textContent = `✅ Done Entering (${scannedProducts.length} product${scannedProducts.length > 1 ? 's' : ''})`;
+            } else {
+                scannedIDsDisplay.textContent = 'None';
+                doneScanningBtn.disabled = true;
+                doneScanningBtn.textContent = '✅ Done Entering (0 products)';
+            }
+        }
+
+        doneScanningBtn.addEventListener('click', () => {
+            document.getElementById('step-scan').classList.add('hidden');
+            document.getElementById('step-verify').classList.remove('hidden');
+            
+            const productList = document.getElementById('finalProductList');
+            productList.innerHTML = scannedProducts.map(product => 
+                `<div class="product-list-item">📦 ${product}</div>`
+            ).join('');
+        });
+
+        document.getElementById('listCorrectBtn').addEventListener('click', () => {
+            document.getElementById('finalProductList').classList.add('hidden');
+            document.getElementById('listCorrectBtn').classList.add('hidden');
+            document.getElementById('listIncorrectBtn').classList.add('hidden');
+            document.getElementById('step-complete').classList.remove('hidden');
+            
+            // Generate product list with manual links
+            const productListWithLinks = document.getElementById('finalProductListWithLinks');
+            productListWithLinks.innerHTML = scannedProducts.map(product => {
+                const manualUrl = `https://binmaster.com/manuals/${product.replace(/\s+/g, '-')}`;
+                return `
+                    <div class="product-list-item">
+                        📦 <strong>${product}</strong><br>
+                        <a href="${manualUrl}" target="_blank" style="color: var(--binmaster-maroon); text-decoration: none;">
+                            📖 View Manual
+                        </a>
+                    </div>
+                `;
+            }).join('');
+        });
+
+        document.getElementById('listIncorrectBtn').addEventListener('click', () => {
+            document.getElementById('step-verify').classList.add('hidden');
+            document.getElementById('step-scan').classList.remove('hidden');
+        });
+        
+        document.getElementById('copyListBtn').addEventListener('click', () => {
+            const listText = scannedProducts.map(product => {
+                const manualUrl = `https://binmaster.com/manuals/${product.replace(/\s+/g, '-')}`;
+                return `${product}\nManual: ${manualUrl}`;
+            }).join('\n\n');
+            
+            navigator.clipboard.writeText(listText).then(() => {
+                const btn = document.getElementById('copyListBtn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                alert('Please copy manually: ' + listText);
+            });
+        });
+    </script>
+
+</body>
+</html>
