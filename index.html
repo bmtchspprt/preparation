@@ -141,6 +141,10 @@
             text-align: center;
         }
         
+        h3 {
+            text-align: center;
+        }
+        
         p {
             text-align: center;
         }
@@ -176,6 +180,14 @@
 
             <button id="listCorrectBtn">✅ Yes, the list is correct</button>
             <button id="listIncorrectBtn">❌ No, I need to correct it</button>
+            
+            <div id="edit-list" class="hidden" style="margin-top: 20px;">
+                <h3>Edit Your List</h3>
+                <div id="editableProductList"></div>
+                <input type="text" id="addMoreInput" placeholder="Add more products">
+                <button id="addMoreBtn">➕ Add More</button>
+                <button id="doneEditingBtn">✅ Done Editing</button>
+            </div>
         </div>
         
         <div id="step-complete" class="step hidden">
@@ -189,6 +201,10 @@
                 <strong>📧 Save for future reference:</strong><br>
                 Copy this list and paste it into an email to keep a record of your products and their manuals.
             </p>
+            
+            <p style="margin-top: 20px;">
+                <a href="javascript:void(0);" id="startOverLink" style="color: #999; font-size: 12px; text-decoration: underline; cursor: pointer;">Clear form and start again</a>
+            </p>
         </div>
     </div>
 
@@ -196,9 +212,6 @@
         // Product to manual URL mapping
         const manualLinks = {
             'NCR': 'https://support.binmaster.com/hc/en-us/articles/44071923152660-App-NCR-80-NCR-86',
-            'NCR-80': 'https://support.binmaster.com/hc/en-us/articles/44071923152660-App-NCR-80-NCR-86',
-            'NCR-86': 'https://support.binmaster.com/hc/en-us/articles/44071923152660-App-NCR-80-NCR-86',
-            'NR': 'https://support.binmaster.com/hc/en-us/articles/44071923152660-App-NCR-80-NCR-86',
             'CNCR': 'https://support.binmaster.com/hc/en-us/articles/44072020292756-App-CNCR',
             '3D SCANNER': 'https://support.binmaster.com/hc/en-us/articles/44072072073492-App-3D-Scanner',
             'SMARTBOB': 'https://support.binmaster.com/hc/en-us/articles/44072086648084-App-SmartBob',
@@ -213,10 +226,25 @@
             '3D VISION': 'https://support.binmaster.com/hc/en-us/articles/44072238601620-App-Software'
         };
         
-        // Function to get manual URL for a product
+        // Function to get manual URL for a product - uses partial matching
         function getManualUrl(product) {
-            const key = product.toUpperCase().trim();
-            return manualLinks[key] || null;
+            const input = product.toUpperCase().trim();
+            
+            // Remove spaces and dashes for comparison
+            const cleanInput = input.replace(/[\s\-]/g, '');
+            
+            // Sort keys by length (longest first) to match most specific first
+            const sortedKeys = Object.keys(manualLinks).sort((a, b) => b.length - a.length);
+            
+            // Check for partial matches
+            for (const key of sortedKeys) {
+                const cleanKey = key.replace(/[\s\-]/g, '');
+                if (cleanInput.includes(cleanKey)) {
+                    return manualLinks[key];
+                }
+            }
+            
+            return null;
         }
         
         // Basic functionality to demonstrate the interface
@@ -281,7 +309,7 @@
                         <div class="product-list-item">
                             📦 <strong>${product}</strong><br>
                             <a href="${manualUrl}" target="_blank" style="color: var(--binmaster-maroon); text-decoration: none;">
-                                📖 View Manual
+                                📖 Manual
                             </a>
                         </div>
                     `;
@@ -297,8 +325,51 @@
         });
 
         document.getElementById('listIncorrectBtn').addEventListener('click', () => {
-            document.getElementById('step-verify').classList.add('hidden');
-            document.getElementById('step-scan').classList.remove('hidden');
+            // Show edit interface
+            document.getElementById('finalProductList').classList.add('hidden');
+            document.getElementById('listCorrectBtn').classList.add('hidden');
+            document.getElementById('listIncorrectBtn').classList.add('hidden');
+            document.getElementById('edit-list').classList.remove('hidden');
+            
+            renderEditList();
+        });
+        
+        function renderEditList() {
+            const editList = document.getElementById('editableProductList');
+            editList.innerHTML = scannedProducts.map((product, index) => `
+                <div class="product-list-item" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>📦 ${product}</span>
+                    <button onclick="removeProduct(${index})" style="background-color: #dc3545; padding: 5px 10px; font-size: 14px; width: auto; margin: 0;">✕ Remove</button>
+                </div>
+            `).join('');
+        }
+        
+        window.removeProduct = function(index) {
+            scannedProducts.splice(index, 1);
+            renderEditList();
+        };
+        
+        document.getElementById('addMoreBtn').addEventListener('click', () => {
+            const value = document.getElementById('addMoreInput').value.trim();
+            if (value) {
+                const products = value.split(/[,;\n]+/).map(p => p.trim()).filter(p => p);
+                scannedProducts.push(...products);
+                document.getElementById('addMoreInput').value = '';
+                renderEditList();
+            }
+        });
+        
+        document.getElementById('doneEditingBtn').addEventListener('click', () => {
+            document.getElementById('edit-list').classList.add('hidden');
+            document.getElementById('listCorrectBtn').classList.remove('hidden');
+            document.getElementById('listIncorrectBtn').classList.remove('hidden');
+            
+            // Refresh the product list display
+            const productList = document.getElementById('finalProductList');
+            productList.classList.remove('hidden');
+            productList.innerHTML = scannedProducts.map(product => 
+                `<div class="product-list-item">📦 ${product}</div>`
+            ).join('');
         });
         
         document.getElementById('copyListBtn').addEventListener('click', () => {
@@ -321,6 +392,18 @@
             }).catch(err => {
                 alert('Please copy manually: ' + listText);
             });
+        });
+        
+        document.getElementById('startOverLink').addEventListener('click', (e) => {
+            e.preventDefault();
+            // Clear the products array
+            scannedProducts.length = 0;
+            // Reset all steps
+            document.getElementById('step-complete').classList.add('hidden');
+            document.getElementById('step-verify').classList.add('hidden');
+            document.getElementById('step-scan').classList.remove('hidden');
+            // Reset display
+            updateDisplay();
         });
     </script>
 
