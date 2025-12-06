@@ -195,6 +195,8 @@
             
             <div id="finalProductListWithLinks"></div>
             
+            <div id="wiringDiagramsSection" style="margin-top: 30px;"></div>
+            
             <button id="copyListBtn">📋 Copy List</button>
             
             <p style="margin-top: 15px; font-size: 14px; color: #666;">
@@ -225,6 +227,130 @@
             'BINVENTORY': 'https://support.binmaster.com/hc/en-us/articles/44072238601620-App-Software',
             '3D VISION': 'https://support.binmaster.com/hc/en-us/articles/44072238601620-App-Software'
         };
+        
+        // Product categories
+        const productCategories = {
+            // Sensors
+            'CNCR': 'sensor',
+            'NCR': 'sensor',
+            'SMARTBOB': 'sensor',
+            'TOUGHSONIC': 'sensor',
+            '3D SCANNER': 'sensor',
+            '3D': 'sensor',
+            '5-50': 'sensor',
+            
+            // Network devices
+            'GATEWAY': 'network',
+            'BF230': 'network',
+            '485': 'network',
+            'AEH': 'network',
+            'HCM': 'network',
+            'TC-100': 'network',
+            'DPM': 'network',
+            'LTR': 'network',
+            
+            // Controllers
+            'C-100': 'controller',
+            'C-50': 'controller',
+            
+            // Software
+            'BINCLOUD': 'software',
+            'BINVENTORY': 'software',
+            '3D VISION': 'software'
+        };
+        
+        // Wiring diagram links with required sensors (primary) and optional devices
+        const wiringDiagrams = [
+            {
+                title: 'CNCR Wiring Links (All CNCR Diagrams)',
+                url: 'https://support.binmaster.com/hc/en-us/articles/44067269213460-Wiring-CNCR-Wiring-Links',
+                sensors: ['CNCR']
+            },
+            {
+                title: 'NCR: 4-20 mA 2-wire loop-powered wiring',
+                url: 'https://support.binmaster.com/hc/en-us/articles/40154068253588-Wiring-NCR-4-20-mA-2-wire-loop-powered-wiring',
+                sensors: ['NCR']
+            },
+            {
+                title: 'NCR, CNCR, LTR-100, Gateway, 2 wire, Loop Power',
+                url: 'https://support.binmaster.com/hc/en-us/articles/41690881761556-Wiring-NCR-CNCR-LTR-100-Gateway-2-wire-Loop-Power',
+                sensors: ['NCR', 'CNCR']
+            },
+            {
+                title: 'CNCR, DPM, Gateway',
+                url: 'https://support.binmaster.com/hc/en-us/articles/43683534691604-Wiring-CNCR-DPM-Gateway',
+                sensors: ['CNCR']
+            },
+            {
+                title: 'NCR 2-wire to AEH-100 to Gateway',
+                url: 'https://support.binmaster.com/hc/en-us/articles/38547665378068-Wiring-NCR-2-wire-to-AEH-100-to-Gateway',
+                sensors: ['NCR']
+            },
+            {
+                title: 'C100R to NCR',
+                url: 'https://support.binmaster.com/hc/en-us/articles/38267266986004-Wiring-C100R-to-NCR',
+                sensors: ['NCR']
+            },
+            {
+                title: 'CNCR, C50, C100, BinCloud, WL, Power Supply, Gateway',
+                url: 'https://support.binmaster.com/hc/en-us/articles/41609016708500-Wiring-CNCR-C50-C100-BinCloud-WL-Power-Supply-Gateway',
+                sensors: ['CNCR']
+            },
+            {
+                title: 'ToughSonic TS-100 to Gateway',
+                url: 'https://support.binmaster.com/hc/en-us/articles/40205787009684-Wiring-ToughSonic-TS-100-to-Gateway',
+                sensors: ['TOUGHSONIC']
+            },
+            {
+                title: 'NCRs to Chiyu to Binventory',
+                url: 'https://support.binmaster.com/hc/en-us/articles/38547960097684-Wiring-NCRs-to-Chiyu-to-Binventory',
+                sensors: ['NCR']
+            },
+            {
+                title: 'SmartBob II, C-100, C-50, 24 VDC power',
+                url: 'https://support.binmaster.com/hc/en-us/articles/44058782708884-Wiring-SmartBob-II-C-100-C-50-24-VDC-power',
+                sensors: ['SMARTBOB']
+            },
+            {
+                title: 'NCR-80 to DPM-100 to 485',
+                url: 'https://support.binmaster.com/hc/en-us/articles/38267421154452-Wiring-NCR-80-to-DPM-100-to-485',
+                sensors: ['NCR']
+            },
+            {
+                title: '3D Scanners & RS485',
+                url: 'https://support.binmaster.com/hc/en-us/articles/37570594092180-Wiring-3D-Scanners-RS485',
+                sensors: ['3D SCANNER', '3D']
+            },
+            {
+                title: '5-50 Wiring Diagram',
+                url: 'https://support.binmaster.com/hc/en-us/article_attachments/43193164771860',
+                sensors: ['5-50']
+            }
+        ];
+        
+        // Function to check if user has product matching keyword
+        function hasProduct(keyword) {
+            return scannedProducts.some(product => {
+                const cleanProduct = product.toUpperCase().trim().replace(/[\s\-]/g, '');
+                const cleanKeyword = keyword.replace(/[\s\-]/g, '');
+                return cleanProduct.includes(cleanKeyword);
+            });
+        }
+        
+        // Function to get relevant wiring diagrams based on SENSORS only
+        function getRelevantWiringDiagrams() {
+            const diagrams = wiringDiagrams.filter(diagram => {
+                // Check if user has at least one of the required SENSORS
+                return diagram.sensors.some(sensor => hasProduct(sensor));
+            });
+            
+            // Sort alphabetically by title (first word)
+            return diagrams.sort((a, b) => {
+                const firstWordA = a.title.split(/[\s,:]+/)[0].toUpperCase();
+                const firstWordB = b.title.split(/[\s,:]+/)[0].toUpperCase();
+                return firstWordA.localeCompare(firstWordB);
+            });
+        }
         
         // Function to get manual URL for a product - uses partial matching
         function getManualUrl(product) {
@@ -306,22 +432,42 @@
                 const manualUrl = getManualUrl(product);
                 if (manualUrl) {
                     return `
-                        <div class="product-list-item">
-                            📦 <strong>${product}</strong><br>
-                            <a href="${manualUrl}" target="_blank" style="color: var(--binmaster-maroon); text-decoration: none;">
+                        <div class="product-list-item" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>📦 <strong>${product}</strong></span>
+                            <a href="${manualUrl}" target="_blank" style="color: var(--binmaster-maroon); text-decoration: none; white-space: nowrap; margin-left: 10px;">
                                 📖 Manual
                             </a>
                         </div>
                     `;
                 } else {
                     return `
-                        <div class="product-list-item">
-                            📦 <strong>${product}</strong><br>
+                        <div class="product-list-item" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>📦 <strong>${product}</strong></span>
                             <span style="color: #999;">Manual not found</span>
                         </div>
                     `;
                 }
             }).join('');
+            
+            // Generate wiring diagrams section
+            const relevantDiagrams = getRelevantWiringDiagrams();
+            const wiringSection = document.getElementById('wiringDiagramsSection');
+            
+            if (relevantDiagrams.length > 0) {
+                wiringSection.innerHTML = `
+                    <hr style="margin: 20px 0;">
+                    <h3 style="color: var(--binmaster-maroon);">Related Wiring Diagrams</h3>
+                    ${relevantDiagrams.map(diagram => `
+                        <div class="product-list-item" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left;">
+                            <a href="${diagram.url}" target="_blank" style="color: #333; text-decoration: none;">
+                                ${diagram.title}
+                            </a>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                wiringSection.innerHTML = '';
+            }
         });
 
         document.getElementById('listIncorrectBtn').addEventListener('click', () => {
