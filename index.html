@@ -12,7 +12,7 @@
 <body class="bg-gray-100 p-8">
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
         <h1 class="text-2xl font-bold mb-2 text-blue-900">BinMaster Letter Builder</h1>
-        <p class="text-sm text-gray-600 mb-6">Paste order data below to generate formatted emails with live links.</p>
+        <p class="text-sm text-gray-600 mb-6">Paste PDF or Excel rows below. NCR and CNCR are now processed separately.</p>
         
         <textarea id="input" rows="8" class="w-full p-4 border-2 border-gray-200 rounded-lg mb-4 focus:border-blue-500 outline-none" placeholder="Paste order data here..."></textarea>
         <button onclick="build()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow">Generate Emails</button>
@@ -21,16 +21,42 @@
     </div>
 
     <script>
-        // Updated Resource Map with Specific NCR vs CNCR differentiation
+        // Exact mapping from your provided spreadsheet data
         const resourceMap = {
-            "BMRX": ["BMRX - Rotary Manual: https://support.binmaster.com/rotary-manual", "Rotary Scenarios: https://support.binmaster.com/scenarios"],
-            "CNCR": ["CNCR Compact Radar Manual: https://support.binmaster.com/cncr-manual", "CNCR Wiring Guide: https://support.binmaster.com/cncr-wiring", "Distance Explanation: https://support.binmaster.com/distance-exp"],
-            "NCR": ["NCR Standard Radar Manual: https://support.binmaster.com/ncr-manual", "NCR Wiring Guide: https://support.binmaster.com/ncr-wiring", "Bindisc Setup: https://support.binmaster.com/bindisc-setup"],
-            "3D Scanner": ["3D Wiring: https://support.binmaster.com/3d-wiring", "3D Manual: https://support.binmaster.com/3d-manual"],
-            "BinCloud": ["BinCloud Video: https://support.binmaster.com/bincloud-video", "Vessel Measurement Form: https://support.binmaster.com/vessel-form"],
-            "ProCap": ["ProCap Manual: https://support.binmaster.com/procap-manual", "ProCap Wiring: https://support.binmaster.com/procap-wiring"],
-            "GRP": ["GRP - Single bayonet blade manual: https://support.binmaster.com/grp-manual"],
-            "GRMP": ["GRMP - Mounting plate guide: https://support.binmaster.com/grmp-guide"]
+            "BMRX": [
+                "Rotary Manual: https://support.binmaster.com/kb/view/66e6b142-438c-4f2f-85c2-bda53cba000f",
+                "Rotary scenarios: https://support.binmaster.com/kb/view/809dda8f-1de8-44ae-af07-fe2865c03113"
+            ],
+            "CNCR": [
+                "CNCR Manual: https://support.binmaster.com/kb/view/bc8e6a67-a401-4bc6-aa83-3423a0282860",
+                "CNCR Wiring: https://support.binmaster.com/kb/view/a5d3b4e0-a336-43f4-94f4-962eeef7d7af",
+                "Distance explanation: https://support.binmaster.com/kb/view/354aa685-9ca4-429e-bc12-c8133f120720",
+                "Bluetooth setup: https://support.binmaster.com/kb/view/727931c3-2a62-4467-938b-821f5798e162",
+                "Vessel Measurement Form: https://support.binmaster.com/kb/view/d65c70fd-45a6-4720-9db6-de9f61348bae"
+            ],
+            "NCR": [
+                "NCR Manual: https://support.binmaster.com/kb/view/bc8e6a67-a401-4bc6-aa83-3423a0282860",
+                "NCR Wiring: https://support.binmaster.com/kb/view/a5d3b4e0-a336-43f4-94f4-962eeef7d7af",
+                "Distance explanation: https://support.binmaster.com/kb/view/354aa685-9ca4-429e-bc12-c8133f120720",
+                "Bindisc setup: https://support.binmaster.com/kb/view/727931c3-2a62-4467-938b-821f5798e162",
+                "Vessel Measurement Form: https://support.binmaster.com/kb/view/d65c70fd-45a6-4720-9db6-de9f61348bae"
+            ],
+            "3D Scanner": [
+                "3D Wiring: https://support.binmaster.com/kb/view/52912f26-04f4-4aeb-b3ba-10db7226afcd",
+                "3D Vision TCP Connect: https://support.binmaster.com/kb/view/7d8bee17-d629-4075-a18b-7e0725f4b52a",
+                "3D Manual: https://support.binmaster.com/kb/view/c33bfffd-6111-4b65-961c-17a2b1797374"
+            ],
+            "BinCloud": [
+                "Video: https://support.binmaster.com/kb/view/8f64f604-a14e-4e36-8cba-4d01bc248b99",
+                "Vessel Measurement Form: https://support.binmaster.com/kb/view/d65c70fd-45a6-4720-9db6-de9f61348bae",
+                "BinCloud Firewall Rules: https://support.binmaster.com/kb/view/97d028e3-0c4c-4731-9008-01306385312f"
+            ],
+            "ProCap": [
+                "ProCap Manual: https://support.binmaster.com/kb/view/4895275b-1f7c-4b28-8fec-925faa017f46",
+                "ProCap Wiring: https://support.binmaster.com/kb/view/c67bbd67-e00b-46ef-9f72-38a83856a103"
+            ],
+            "GRP": ["Single bayonet blade manual: https://support.binmaster.com/kb/view/c77ec700-60b6-4556-912b-36528d757d9d"],
+            "GRMP": ["Mounting plate guide: https://support.binmaster.com/kb/view/97a5b3f2-89cc-433b-8f36-9e8c71550c60"]
         };
 
         function build() {
@@ -39,7 +65,6 @@
             container.innerHTML = '';
             const history = JSON.parse(localStorage.getItem('sent_log') || '[]');
 
-            // Split by Order Number
             const parts = text.split(/(ORD-\d{2}-\d{5})/g);
             
             for (let i = 1; i < parts.length; i += 2) {
@@ -49,22 +74,31 @@
                 let foundLinks = [];
                 let itemsList = [];
                 
-                // Specific search logic to avoid NCR matching inside CNCR
+                // Specific search to separate NCR and CNCR
                 for (const [key, links] of Object.entries(resourceMap)) {
-                    const regex = new RegExp("\\b" + key + "\\b", "i");
-                    if (regex.test(content)) {
+                    // Logic: Check if it's CNCR first, or if NCR is NOT preceded by 'C'
+                    const isCNCR = content.includes("CNCR");
+                    const isNCR = content.includes("NCR") && !content.includes("CNCR");
+
+                    if (key === "CNCR" && isCNCR) {
                         itemsList.push(key);
-                        links.forEach(link => foundLinks.push(link));
+                        links.forEach(l => foundLinks.push(l));
+                    } else if (key === "NCR" && isNCR) {
+                        itemsList.push(key);
+                        links.forEach(l => foundLinks.push(l));
+                    } else if (key !== "NCR" && key !== "CNCR" && content.toUpperCase().includes(key.toUpperCase())) {
+                        itemsList.push(key);
+                        links.forEach(l => foundLinks.push(l));
                     }
                 }
 
-                const itemsFoundStr = [...new Set(itemsList)].join(', ');
-                const linksStr = [...new Set(foundLinks)].join('\n');
                 const customerMatch = content.match(/[A-Za-z ]{3,}/);
                 const customer = customerMatch ? customerMatch[0].trim() : "Customer";
-
                 const subject = `${ordNum} ${customer}`;
-                const body = `${itemsFoundStr}\n\nThanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\n\n${linksStr}\n\nRemember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech.\n\nProtip: Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check.\n\nBinMaster Technical Support Team\n402-434-9105\ntechnicalsupport@binmaster.com\nsupport.binmaster.com`;
+                const itemsFoundStr = [...new Set(itemsList)].join(', ');
+                const linksStr = [...new Set(foundLinks)].join('\n');
+
+                const body = `Greetings!\n\n${itemsFoundStr}\n\nThanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\n\n${linksStr}\n\nRemember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech. Protip: Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check.\n\nBinMaster Technical Support Team\n402-434-9105\ntechnicalsupport@binmaster.com\nsupport.binmaster.com`;
 
                 const isSent = history.includes(ordNum);
                 const btnId = `btn-${i}`;
@@ -86,7 +120,6 @@
 
         function sendMail(id, sub, body, btnId) {
             window.location.href = `mailto:?subject=${sub}&body=${body}`;
-            
             let history = JSON.parse(localStorage.getItem('sent_log') || '[]');
             if (!history.includes(id)) {
                 history.push(id);
