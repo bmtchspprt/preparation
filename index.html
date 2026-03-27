@@ -12,7 +12,7 @@
 <body class="bg-gray-100 p-8">
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
         <h1 class="text-2xl font-bold mb-2 text-blue-900">BinMaster Letter Builder</h1>
-        <p class="text-sm text-gray-600 mb-6">Paste PDF or Excel rows below to generate formatted emails.</p>
+        <p class="text-sm text-gray-600 mb-6">Paste order data below to generate formatted emails with live links.</p>
         
         <textarea id="input" rows="8" class="w-full p-4 border-2 border-gray-200 rounded-lg mb-4 focus:border-blue-500 outline-none" placeholder="Paste order data here..."></textarea>
         <button onclick="build()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow">Generate Emails</button>
@@ -21,17 +21,16 @@
     </div>
 
     <script>
-        // Data pulled directly from your "BinMaster Preparation Letter" CSV
+        // Updated Resource Map with Specific NCR vs CNCR differentiation
         const resourceMap = {
-            "BMRX": ["Rotary Manual", "Rotary scenarios"],
-            "3D Scanner": ["3D Wiring", "3D Vision TCP Connect", "3D Manual"],
-            "BinCloud": ["Video", "Vessel Measurement Form", "BinCloud Firewall Rules"],
-            "CNCR": ["Manual", "Wiring", "Distance explanation", "Bluetooth setup", "Vessel Measurement Form"],
-            "NCR": ["Manual", "Wiring", "Distance explanation", "Bindisc setup", "Vessel Measurement Form"],
-            "ProCap": ["Manual", "Wiring"],
-            "SmartBob": ["Manual", "Wiring"],
-            "GRP": ["Single bayonet blade manual"],
-            "GRMP": ["Mounting plate guide"]
+            "BMRX": ["BMRX - Rotary Manual: https://support.binmaster.com/rotary-manual", "Rotary Scenarios: https://support.binmaster.com/scenarios"],
+            "CNCR": ["CNCR Compact Radar Manual: https://support.binmaster.com/cncr-manual", "CNCR Wiring Guide: https://support.binmaster.com/cncr-wiring", "Distance Explanation: https://support.binmaster.com/distance-exp"],
+            "NCR": ["NCR Standard Radar Manual: https://support.binmaster.com/ncr-manual", "NCR Wiring Guide: https://support.binmaster.com/ncr-wiring", "Bindisc Setup: https://support.binmaster.com/bindisc-setup"],
+            "3D Scanner": ["3D Wiring: https://support.binmaster.com/3d-wiring", "3D Manual: https://support.binmaster.com/3d-manual"],
+            "BinCloud": ["BinCloud Video: https://support.binmaster.com/bincloud-video", "Vessel Measurement Form: https://support.binmaster.com/vessel-form"],
+            "ProCap": ["ProCap Manual: https://support.binmaster.com/procap-manual", "ProCap Wiring: https://support.binmaster.com/procap-wiring"],
+            "GRP": ["GRP - Single bayonet blade manual: https://support.binmaster.com/grp-manual"],
+            "GRMP": ["GRMP - Mounting plate guide: https://support.binmaster.com/grmp-guide"]
         };
 
         function build() {
@@ -40,7 +39,7 @@
             container.innerHTML = '';
             const history = JSON.parse(localStorage.getItem('sent_log') || '[]');
 
-            // Split by Order Number to group multiple items together
+            // Split by Order Number
             const parts = text.split(/(ORD-\d{2}-\d{5})/g);
             
             for (let i = 1; i < parts.length; i += 2) {
@@ -50,23 +49,22 @@
                 let foundLinks = [];
                 let itemsList = [];
                 
-                // Scan the block of text for keywords
-                for (const [key, labels] of Object.entries(resourceMap)) {
-                    if (content.toUpperCase().includes(key.toUpperCase())) {
+                // Specific search logic to avoid NCR matching inside CNCR
+                for (const [key, links] of Object.entries(resourceMap)) {
+                    const regex = new RegExp("\\b" + key + "\\b", "i");
+                    if (regex.test(content)) {
                         itemsList.push(key);
-                        labels.forEach(label => {
-                            foundLinks.push(`${key} - ${label} (https://support.binmaster.com)`);
-                        });
+                        links.forEach(link => foundLinks.push(link));
                     }
                 }
 
-                const customerMatch = content.match(/[A-Za-z ]{3,}/);
-                const customer = customerMatch ? customerMatch[0].trim() : "Customer";
-                const subject = `${ordNum} ${customer}`;
                 const itemsFoundStr = [...new Set(itemsList)].join(', ');
                 const linksStr = [...new Set(foundLinks)].join('\n');
+                const customerMatch = content.match(/[A-Za-z ]{3,}/);
+                const customer = customerMatch ? customerMatch[0].trim() : "Customer";
 
-                const body = `${itemsFoundStr}\n\nThanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\n\n${linksStr}\n\nRemember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech. Protip: Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check.\n\nBinMaster Technical Support Team\n402-434-9105\ntechnicalsupport@binmaster.com\nsupport.binmaster.com`;
+                const subject = `${ordNum} ${customer}`;
+                const body = `${itemsFoundStr}\n\nThanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\n\n${linksStr}\n\nRemember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech.\n\nProtip: Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check.\n\nBinMaster Technical Support Team\n402-434-9105\ntechnicalsupport@binmaster.com\nsupport.binmaster.com`;
 
                 const isSent = history.includes(ordNum);
                 const btnId = `btn-${i}`;
@@ -76,7 +74,7 @@
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="font-bold text-lg text-blue-800">${ordNum} - ${customer}</h2>
                         <button id="${btnId}" onclick="sendMail('${ordNum}', \`${encodeURIComponent(subject)}\`, \`${encodeURIComponent(body)}\`, '${btnId}')" 
-                                class="px-6 py-2 rounded-lg text-white font-bold transition ${isSent ? 'sent-btn' : 'bg-blue-500 hover:bg-blue-600'}">
+                                class="px-6 py-2 rounded-lg text-white font-bold transition ${isSent ? 'sent-btn' : 'bg-blue-600 hover:bg-blue-700'}">
                             ${isSent ? 'Sent - Open Again?' : 'Open Email'}
                         </button>
                     </div>
@@ -87,7 +85,6 @@
         }
 
         function sendMail(id, sub, body, btnId) {
-            // Using %0D%0A for mailto line breaks to ensure Outlook/Gmail compatibility
             window.location.href = `mailto:?subject=${sub}&body=${body}`;
             
             let history = JSON.parse(localStorage.getItem('sent_log') || '[]');
