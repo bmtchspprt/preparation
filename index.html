@@ -3,555 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BinMaster Setup</title>
+    <title>BinMaster Letter Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Define the BinMaster Maroon color */
-        :root {
-            --binmaster-maroon: #c02a2a;
-        }
-
-        /* Responsive CSS for Mobile/PC Friendliness */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f7f6;
-            color: #333;
-            text-align: center;
-        }
-
-        .container {
-            max-width: 400px; /* Mobile-friendly width */
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Updated H1 style for the Box Icon and Maroon text */
-        h1 {
-            color: var(--binmaster-maroon); /* Maroon headline */
-            text-align: center;
-            /* Using flex to stack icon and text vertically */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-        }
-
-        /* Style for the Box Icon in the H1 */
-        h1 span {
-            margin-bottom: 10px;
-            font-size: 40px;
-            line-height: 1; 
-        }
-
-        /* Updated button styles - alternating colors */
-        button {
-            background-color: var(--binmaster-maroon);
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 5px auto;
-            width: 100%;
-            transition: background-color 0.3s ease;
-            display: block;
-        }
-        
-        button:nth-of-type(even) {
-            background-color: #999999; /* 60% gray */
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-        
-        /* Specific style for the copy button */
-        #copyListBtn {
-            background-color: #c02a2a;
-            margin-top: 15px;
-            margin-bottom: 10px;
-        }
-
-        #copyListBtn:hover {
-            opacity: 0.9;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0 20px 0;
-            display: inline-block;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        
-        input[type="text"]::placeholder {
-            color: #808080;
-        }
-
-        .product-list-item {
-            padding: 8px;
-            border-bottom: 1px dashed #eee;
-            text-align: center;
-        }
-
-        .correction-form {
-            padding: 15px;
-            background-color: #f0f8ff;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-        
-        .final-step-note {
-            background-color: #262626; /* 15% gray */
-            border-left: 5px solid var(--binmaster-maroon);
-            padding: 15px;
-            margin-top: 20px;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Responsive Breakpoint for larger screens (PC) */
-        @media (min-width: 600px) {
-            button {
-                width: auto;
-                margin-left: auto;
-                margin-right: auto;
-            }
-        }
-        
-        h2 {
-            text-align: center;
-        }
-        
-        h3 {
-            text-align: center;
-        }
-        
-        p {
-            text-align: center;
-        }
-        
-        .step {
-            text-align: center;
-        }
+        .sent-btn { background-color: #059669 !important; } /* Green-600 */
     </style>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen p-4 md:p-10">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+        <h1 class="text-3xl font-bold text-blue-900 mb-2">Letter Builder</h1>
+        <p class="text-gray-600 mb-6">Paste your order data below to generate resources emails.</p>
 
-    <div class="container">
-        <h1><span>📦</span>BinMaster Setup</h1>
-        
-        <hr>
-
-        <div id="step-scan" class="step">
-            <h2>Enter Model</h2>
-            <p>Type the <strong>model</strong> found on each box label, <strong>one at a time</strong>.</p>
-            <input type="text" id="manualInput" placeholder="e.g., NCR-86, CNCR-190, Gateway">
-            
-            <button id="addInputBtn">➕ Add Product</button>
-            
-            <p><strong>IDs Entered:</strong> <span id="scannedIDs">None</span></p>
-
-            <button id="doneScanningBtn" disabled>✅ Done Entering (0 products)</button>
-        </div>
-
-        <hr>
-
-        <div id="step-verify" class="step hidden">
-            <div id="finalProductList"></div>
-
-            <button id="listCorrectBtn">✅ Yes, the list is correct</button>
-            <button id="listIncorrectBtn">❌ No, I need to correct it</button>
-            
-            <div id="edit-list" class="hidden" style="margin-top: 20px;">
-                <h3>Edit Your List</h3>
-                <div id="editableProductList"></div>
-                <input type="text" id="addMoreInput" placeholder="Add more products">
-                <button id="addMoreBtn">➕ Add More</button>
-                <button id="doneEditingBtn">✅ Done Editing</button>
+        <div class="mb-8">
+            <textarea id="orderInput" rows="6" class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none" 
+                placeholder="Paste PDF text or Excel rows here..."></textarea>
+            <div class="flex gap-4 mt-4">
+                <button onclick="generateLetters()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
+                    Generate Letters
+                </button>
+                <button onclick="clearHistory()" class="text-red-500 text-sm hover:underline">
+                    Clear Sent History
+                </button>
             </div>
         </div>
-        
-        <div id="step-complete" class="step hidden">
-            <h2>Product List with Related Links</h2>
-            
-            <div id="finalProductListWithLinks"></div>
-            
-            <div id="wiringDiagramsSection" style="margin-top: 30px;"></div>
-            
-            <button id="copyListBtn">📋 Copy List</button>
-            
-            <p style="margin-top: 15px; font-size: 14px; color: #666;">
-                <strong>📧 Save for future reference:</strong><br>
-                Copy this list and paste it into an email to keep a record of your products and their manuals.
-            </p>
-            
-            <p style="margin-top: 20px;">
-                <a href="javascript:void(0);" id="startOverLink" style="color: #999; font-size: 12px; text-decoration: underline; cursor: pointer;">Clear form and start again</a>
-            </p>
+
+        <div id="duplicateAlert" class="hidden mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+            <strong>Note:</strong> Some orders were already processed and are marked in green.
         </div>
+
+        <div id="letterContainer" class="space-y-6"></div>
     </div>
 
     <script>
-        // Product to manual URL mapping
-        const manualLinks = {
-            'NCR': 'https://support.binmaster.com/hc/en-us/articles/44071923152660-App-NCR-80-NCR-86',
-            'CNCR': 'https://support.binmaster.com/hc/en-us/articles/44072020292756-App-CNCR',
-            '3D SCANNER': 'https://support.binmaster.com/hc/en-us/articles/44072072073492-App-3D-Scanner',
-            'SMARTBOB': 'https://support.binmaster.com/hc/en-us/articles/44072086648084-App-SmartBob',
-            'DPM': 'https://support.binmaster.com/hc/en-us/articles/44072093609492-App-DPM',
-            'C-100': 'https://support.binmaster.com/hc/en-us/articles/44072141126676-App-C-100',
-            'GATEWAY': 'https://support.binmaster.com/hc/en-us/articles/44072175258132-App-Gateway',
-            'AEH': 'https://support.binmaster.com/hc/en-us/articles/44072151453716-App-HCM-LTR-AEH',
-            'LTR': 'https://support.binmaster.com/hc/en-us/articles/44072151453716-App-HCM-LTR-AEH',
-            'HCM': 'https://support.binmaster.com/hc/en-us/articles/44072151453716-App-HCM-LTR-AEH',
-            'BINCLOUD': 'https://support.binmaster.com/hc/en-us/articles/44072238601620-App-Software',
-            'BINVENTORY': 'https://support.binmaster.com/hc/en-us/articles/44072238601620-App-Software',
-            '3D VISION': 'https://support.binmaster.com/hc/en-us/articles/44072238601620-App-Software'
+        // Mapping Table: Keyword -> Links
+        const resourceMap = {
+            "BMRX": ["Rotary Manual", "Rotary Scenarios"],
+            "CNCR": ["Manual", "Wiring", "Distance explanation", "Bluetooth setup"],
+            "ProCap": ["Manual", "Wiring"],
+            "GRP": ["Single bayonet blade manual"],
+            "GRMP": ["Mounting plate guide"]
         };
-        
-        // Product categories
-        const productCategories = {
-            // Sensors
-            'CNCR': 'sensor',
-            'NCR': 'sensor',
-            'SMARTBOB': 'sensor',
-            'TOUGHSONIC': 'sensor',
-            '3D SCANNER': 'sensor',
-            '3D': 'sensor',
-            '5-50': 'sensor',
-            
-            // Network devices
-            'GATEWAY': 'network',
-            'BF230': 'network',
-            '485': 'network',
-            'AEH': 'network',
-            'HCM': 'network',
-            'TC-100': 'network',
-            'DPM': 'network',
-            'LTR': 'network',
-            
-            // Controllers
-            'C-100': 'controller',
-            'C-50': 'controller',
-            
-            // Software
-            'BINCLOUD': 'software',
-            'BINVENTORY': 'software',
-            '3D VISION': 'software'
-        };
-        
-        // Wiring diagram links with required sensors (primary) and optional devices
-        const wiringDiagrams = [
-            {
-                title: 'CNCR Wiring Links (All CNCR Diagrams)',
-                url: 'https://support.binmaster.com/hc/en-us/articles/44067269213460-Wiring-CNCR-Wiring-Links',
-                sensors: ['CNCR']
-            },
-            {
-                title: 'NCR: 4-20 mA 2-wire loop-powered wiring',
-                url: 'https://support.binmaster.com/hc/en-us/articles/40154068253588-Wiring-NCR-4-20-mA-2-wire-loop-powered-wiring',
-                sensors: ['NCR']
-            },
-            {
-                title: 'NCR, CNCR, LTR-100, Gateway, 2 wire, Loop Power',
-                url: 'https://support.binmaster.com/hc/en-us/articles/41690881761556-Wiring-NCR-CNCR-LTR-100-Gateway-2-wire-Loop-Power',
-                sensors: ['NCR', 'CNCR']
-            },
-            {
-                title: 'CNCR, DPM, Gateway',
-                url: 'https://support.binmaster.com/hc/en-us/articles/43683534691604-Wiring-CNCR-DPM-Gateway',
-                sensors: ['CNCR']
-            },
-            {
-                title: 'NCR 2-wire to AEH-100 to Gateway',
-                url: 'https://support.binmaster.com/hc/en-us/articles/38547665378068-Wiring-NCR-2-wire-to-AEH-100-to-Gateway',
-                sensors: ['NCR']
-            },
-            {
-                title: 'C100R to NCR',
-                url: 'https://support.binmaster.com/hc/en-us/articles/38267266986004-Wiring-C100R-to-NCR',
-                sensors: ['NCR']
-            },
-            {
-                title: 'CNCR, C50, C100, BinCloud, WL, Power Supply, Gateway',
-                url: 'https://support.binmaster.com/hc/en-us/articles/41609016708500-Wiring-CNCR-C50-C100-BinCloud-WL-Power-Supply-Gateway',
-                sensors: ['CNCR']
-            },
-            {
-                title: 'ToughSonic TS-100 to Gateway',
-                url: 'https://support.binmaster.com/hc/en-us/articles/40205787009684-Wiring-ToughSonic-TS-100-to-Gateway',
-                sensors: ['TOUGHSONIC']
-            },
-            {
-                title: 'NCRs to Chiyu to Binventory',
-                url: 'https://support.binmaster.com/hc/en-us/articles/38547960097684-Wiring-NCRs-to-Chiyu-to-Binventory',
-                sensors: ['NCR']
-            },
-            {
-                title: 'SmartBob II, C-100, C-50, 24 VDC power',
-                url: 'https://support.binmaster.com/hc/en-us/articles/44058782708884-Wiring-SmartBob-II-C-100-C-50-24-VDC-power',
-                sensors: ['SMARTBOB']
-            },
-            {
-                title: 'NCR-80 to DPM-100 to 485',
-                url: 'https://support.binmaster.com/hc/en-us/articles/38267421154452-Wiring-NCR-80-to-DPM-100-to-485',
-                sensors: ['NCR']
-            },
-            {
-                title: '3D Scanners & RS485',
-                url: 'https://support.binmaster.com/hc/en-us/articles/37570594092180-Wiring-3D-Scanners-RS485',
-                sensors: ['3D SCANNER', '3D']
-            },
-            {
-                title: '5-50 Wiring Diagram',
-                url: 'https://support.binmaster.com/hc/en-us/article_attachments/43193164771860',
-                sensors: ['5-50']
+
+        function getHistory() {
+            return JSON.parse(localStorage.getItem('sentOrders') || '[]');
+        }
+
+        function markAsSent(orderId, btnId) {
+            let history = getHistory();
+            if (!history.includes(orderId)) {
+                history.push(orderId);
+                localStorage.setItem('sentOrders', JSON.stringify(history));
             }
-        ];
-        
-        // Function to check if user has product matching keyword
-        function hasProduct(keyword) {
-            return scannedProducts.some(product => {
-                const cleanProduct = product.toUpperCase().trim().replace(/[\s\-]/g, '');
-                const cleanKeyword = keyword.replace(/[\s\-]/g, '');
-                return cleanProduct.includes(cleanKeyword);
-            });
+            const btn = document.getElementById(btnId);
+            btn.classList.add('sent-btn');
+            btn.innerText = 'Sent - Click to Resend';
         }
-        
-        // Function to get relevant wiring diagrams based on SENSORS only
-        function getRelevantWiringDiagrams() {
-            const diagrams = wiringDiagrams.filter(diagram => {
-                // Check if user has at least one of the required SENSORS
-                return diagram.sensors.some(sensor => hasProduct(sensor));
-            });
-            
-            // Sort alphabetically by title (first word)
-            return diagrams.sort((a, b) => {
-                const firstWordA = a.title.split(/[\s,:]+/)[0].toUpperCase();
-                const firstWordB = b.title.split(/[\s,:]+/)[0].toUpperCase();
-                return firstWordA.localeCompare(firstWordB);
-            });
+
+        function clearHistory() {
+            if(confirm("Clear all 'Sent' history?")) {
+                localStorage.removeItem('sentOrders');
+                location.reload();
+            }
         }
-        
-        // Function to get manual URL for a product - uses partial matching
-        function getManualUrl(product) {
-            const input = product.toUpperCase().trim();
+
+        function generateLetters() {
+            const input = document.getElementById('orderInput').value;
+            const container = document.getElementById('letterContainer');
+            const alertBox = document.getElementById('duplicateAlert');
+            const history = getHistory();
             
-            // Remove spaces and dashes for comparison
-            const cleanInput = input.replace(/[\s\-]/g, '');
+            container.innerHTML = '';
+            alertBox.classList.add('hidden');
+
+            // Find all instances of ORD-XX-XXXXX
+            const orderRegex = /(ORD-\d{2}-\d{5})/g;
+            const matches = [...input.matchAll(orderRegex)];
             
-            // Sort keys by length (longest first) to match most specific first
-            const sortedKeys = Object.keys(manualLinks).sort((a, b) => b.length - a.length);
-            
-            // Check for partial matches
-            for (const key of sortedKeys) {
-                const cleanKey = key.replace(/[\s\-]/g, '');
-                if (cleanInput.includes(cleanKey)) {
-                    return manualLinks[key];
+            if (matches.length === 0) {
+                alert("No Order Numbers found. Try pasting the text from your PDF.");
+                return;
+            }
+
+            let foundDuplicates = false;
+
+            matches.forEach((match, index) => {
+                const orderId = match[0];
+                const btnId = `btn-${index}`;
+                
+                if (history.includes(orderId)) foundDuplicates = true;
+
+                // Simple logic: look at the text immediately following the order number
+                const context = input.substring(match.index, match.index + 500);
+                
+                let links = [];
+                for (const [key, urls] of Object.entries(resourceMap)) {
+                    if (context.includes(key)) {
+                        urls.forEach(u => links.push(`${key}: ${u}`));
+                    }
                 }
-            }
-            
-            return null;
-        }
-        
-        // Basic functionality to demonstrate the interface
-        const scannedProducts = [];
-        const manualInput = document.getElementById('manualInput');
-        const addInputBtn = document.getElementById('addInputBtn');
-        const scannedIDsDisplay = document.getElementById('scannedIDs');
-        const doneScanningBtn = document.getElementById('doneScanningBtn');
 
-        addInputBtn.addEventListener('click', () => {
-            const value = manualInput.value.trim();
-            if (value) {
-                // Auto-detect multiple products (separated by comma, newline, or semicolon)
-                const products = value.split(/[,;\n]+/).map(p => p.trim()).filter(p => p);
-                scannedProducts.push(...products);
-                manualInput.value = '';
-                updateDisplay();
-            }
-        });
+                const linkText = links.length > 0 ? links.join('\\n') : "General Resources";
+                
+                const subject = `${orderId} BinMaster Support Resources`;
+                const body = `Thanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\\n\\n${linkText}\\n\\nRemember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech. Protip: Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check.\\n\\nBinMaster Technical Support Team\\n402-434-9105`;
 
-        manualInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addInputBtn.click();
-            }
-        });
-
-        function updateDisplay() {
-            if (scannedProducts.length > 0) {
-                scannedIDsDisplay.textContent = scannedProducts.join(', ');
-                doneScanningBtn.disabled = false;
-                doneScanningBtn.textContent = `✅ Done Entering (${scannedProducts.length} product${scannedProducts.length > 1 ? 's' : ''})`;
-            } else {
-                scannedIDsDisplay.textContent = 'None';
-                doneScanningBtn.disabled = true;
-                doneScanningBtn.textContent = '✅ Done Entering (0 products)';
-            }
-        }
-
-        doneScanningBtn.addEventListener('click', () => {
-            document.getElementById('step-scan').classList.add('hidden');
-            document.getElementById('step-verify').classList.remove('hidden');
-            
-            const productList = document.getElementById('finalProductList');
-            productList.innerHTML = scannedProducts.map(product => 
-                `<div class="product-list-item">📦 ${product}</div>`
-            ).join('');
-        });
-
-        document.getElementById('listCorrectBtn').addEventListener('click', () => {
-            document.getElementById('finalProductList').classList.add('hidden');
-            document.getElementById('listCorrectBtn').classList.add('hidden');
-            document.getElementById('listIncorrectBtn').classList.add('hidden');
-            document.getElementById('step-verify').classList.add('hidden');
-            document.getElementById('step-complete').classList.remove('hidden');
-            
-            // Generate product list with manual links
-            const productListWithLinks = document.getElementById('finalProductListWithLinks');
-            productListWithLinks.innerHTML = scannedProducts.map(product => {
-                const manualUrl = getManualUrl(product);
-                if (manualUrl) {
-                    return `
-                        <div class="product-list-item" style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>📦 <strong>${product}</strong></span>
-                            <a href="${manualUrl}" target="_blank" style="color: var(--binmaster-maroon); text-decoration: none; white-space: nowrap; margin-left: 10px;">
-                                📖 Manual
-                            </a>
-                        </div>
-                    `;
-                } else {
-                    return `
-                        <div class="product-list-item" style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>📦 <strong>${product}</strong></span>
-                            <span style="color: #999;">Manual not found</span>
-                        </div>
-                    `;
-                }
-            }).join('');
-            
-            // Generate wiring diagrams section
-            const relevantDiagrams = getRelevantWiringDiagrams();
-            const wiringSection = document.getElementById('wiringDiagramsSection');
-            
-            if (relevantDiagrams.length > 0) {
-                wiringSection.innerHTML = `
-                    <hr style="margin: 20px 0;">
-                    <h3 style="color: var(--binmaster-maroon);">Related Wiring Diagrams</h3>
-                    ${relevantDiagrams.map(diagram => `
-                        <div class="product-list-item" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left;">
-                            <a href="${diagram.url}" target="_blank" style="color: #333; text-decoration: none;">
-                                ${diagram.title}
-                            </a>
-                        </div>
-                    `).join('')}
+                const card = document.createElement('div');
+                card.className = "p-6 border rounded-lg bg-gray-50 shadow-sm";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-bold text-blue-800">${orderId}</h3>
+                        <a href="mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}" 
+                           id="${btnId}"
+                           onclick="markAsSent('${orderId}', '${btnId}')"
+                           class="px-4 py-2 rounded text-white font-bold transition ${history.includes(orderId) ? 'sent-btn' : 'bg-blue-500 hover:bg-blue-600'}">
+                           ${history.includes(orderId) ? 'Sent - Click to Resend' : 'Prepare Email'}
+                        </a>
+                    </div>
+                    <pre class="text-xs text-gray-700 whitespace-pre-wrap bg-white p-3 border rounded">${body}</pre>
                 `;
-            } else {
-                wiringSection.innerHTML = '';
-            }
-        });
-
-        document.getElementById('listIncorrectBtn').addEventListener('click', () => {
-            // Show edit interface
-            document.getElementById('finalProductList').classList.add('hidden');
-            document.getElementById('listCorrectBtn').classList.add('hidden');
-            document.getElementById('listIncorrectBtn').classList.add('hidden');
-            document.getElementById('edit-list').classList.remove('hidden');
-            
-            renderEditList();
-        });
-        
-        function renderEditList() {
-            const editList = document.getElementById('editableProductList');
-            editList.innerHTML = scannedProducts.map((product, index) => `
-                <div class="product-list-item" style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>📦 ${product}</span>
-                    <button onclick="removeProduct(${index})" style="background-color: #dc3545; padding: 5px 10px; font-size: 14px; width: auto; margin: 0;">✕ Remove</button>
-                </div>
-            `).join('');
-        }
-        
-        window.removeProduct = function(index) {
-            scannedProducts.splice(index, 1);
-            renderEditList();
-        };
-        
-        document.getElementById('addMoreBtn').addEventListener('click', () => {
-            const value = document.getElementById('addMoreInput').value.trim();
-            if (value) {
-                const products = value.split(/[,;\n]+/).map(p => p.trim()).filter(p => p);
-                scannedProducts.push(...products);
-                document.getElementById('addMoreInput').value = '';
-                renderEditList();
-            }
-        });
-        
-        document.getElementById('doneEditingBtn').addEventListener('click', () => {
-            document.getElementById('edit-list').classList.add('hidden');
-            document.getElementById('listCorrectBtn').classList.remove('hidden');
-            document.getElementById('listIncorrectBtn').classList.remove('hidden');
-            
-            // Refresh the product list display
-            const productList = document.getElementById('finalProductList');
-            productList.classList.remove('hidden');
-            productList.innerHTML = scannedProducts.map(product => 
-                `<div class="product-list-item">📦 ${product}</div>`
-            ).join('');
-        });
-        
-        document.getElementById('copyListBtn').addEventListener('click', () => {
-            const listText = scannedProducts.map(product => {
-                const manualUrl = getManualUrl(product);
-                if (manualUrl) {
-                    return `${product}\nManual: ${manualUrl}`;
-                } else {
-                    return `${product}\nManual: Not found`;
-                }
-            }).join('\n\n');
-            
-            navigator.clipboard.writeText(listText).then(() => {
-                const btn = document.getElementById('copyListBtn');
-                const originalText = btn.textContent;
-                btn.textContent = '✅ Copied!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            }).catch(err => {
-                alert('Please copy manually: ' + listText);
+                container.appendChild(card);
             });
-        });
-        
-        document.getElementById('startOverLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            // Clear the products array
-            scannedProducts.length = 0;
-            // Reset all steps
-            document.getElementById('step-complete').classList.add('hidden');
-            document.getElementById('step-verify').classList.add('hidden');
-            document.getElementById('step-scan').classList.remove('hidden');
-            // Reset display
-            updateDisplay();
-        });
-    </script>
 
+            if (foundDuplicates) alertBox.classList.remove('hidden');
+        }
+    </script>
 </body>
 </html>
