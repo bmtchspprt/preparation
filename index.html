@@ -2,46 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BinMaster Letter Builder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .sent-btn { background-color: #059669 !important; border-color: #059669 !important; }
-        pre { font-family: 'ui-sans-serif', system-ui, sans-serif; }
+        pre { white-space: pre-wrap; font-family: ui-sans-serif, system-ui, sans-serif; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 md:p-10">
-    <div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <h1 class="text-3xl font-bold text-blue-900">BinMaster Letter Builder</h1>
-                <p class="text-gray-600">Paste your order data to map keywords to resources.</p>
-            </div>
-            <button onclick="clearHistory()" class="text-red-500 text-sm font-semibold hover:bg-red-50 px-3 py-2 rounded">
-                Reset Sent History
-            </button>
-        </div>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+        <h1 class="text-2xl font-bold mb-2 text-blue-900">BinMaster Letter Builder</h1>
+        <p class="text-sm text-gray-600 mb-6">Paste PDF or Excel rows below to generate formatted emails.</p>
+        
+        <textarea id="input" rows="8" class="w-full p-4 border-2 border-gray-200 rounded-lg mb-4 focus:border-blue-500 outline-none" placeholder="Paste order data here..."></textarea>
+        <button onclick="build()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow">Generate Emails</button>
 
-        <div class="mb-8">
-            <textarea id="orderInput" rows="8" class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none mb-4" 
-                placeholder="Paste the PDF text here (e.g. ORD-26-02644 Motion Industries...)"></textarea>
-            <button onclick="processData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">
-                Generate Resource Letters
-            </button>
-        </div>
-
-        <div id="duplicateAlert" class="hidden mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 flex items-center justify-between">
-            <span><strong>Notice:</strong> Some orders in this list were already sent (marked in green).</span>
-            <button onclick="this.parentElement.remove()" class="text-xl">&times;</button>
-        </div>
-
-        <div id="cardContainer" class="space-y-6"></div>
+        <div id="results" class="mt-8 space-y-6"></div>
     </div>
 
     <script>
-        // Resource Mapping (Sourced from your spreadsheet)
+        // Data pulled directly from your "BinMaster Preparation Letter" CSV
         const resourceMap = {
-            "BMRX": ["Rotary Manual", "Rotary Scenarios"],
+            "BMRX": ["Rotary Manual", "Rotary scenarios"],
             "3D Scanner": ["3D Wiring", "3D Vision TCP Connect", "3D Manual"],
             "BinCloud": ["Video", "Vessel Measurement Form", "BinCloud Firewall Rules"],
             "CNCR": ["Manual", "Wiring", "Distance explanation", "Bluetooth setup", "Vessel Measurement Form"],
@@ -52,105 +34,70 @@
             "GRMP": ["Mounting plate guide"]
         };
 
-        function getHistory() {
-            return JSON.parse(localStorage.getItem('binmaster_sent_log') || '[]');
+        function build() {
+            const text = document.getElementById('input').value;
+            const container = document.getElementById('results');
+            container.innerHTML = '';
+            const history = JSON.parse(localStorage.getItem('sent_log') || '[]');
+
+            // Split by Order Number to group multiple items together
+            const parts = text.split(/(ORD-\d{2}-\d{5})/g);
+            
+            for (let i = 1; i < parts.length; i += 2) {
+                const ordNum = parts[i];
+                const content = parts[i+1] || "";
+                
+                let foundLinks = [];
+                let itemsList = [];
+                
+                // Scan the block of text for keywords
+                for (const [key, labels] of Object.entries(resourceMap)) {
+                    if (content.toUpperCase().includes(key.toUpperCase())) {
+                        itemsList.push(key);
+                        labels.forEach(label => {
+                            foundLinks.push(`${key} - ${label} (https://support.binmaster.com)`);
+                        });
+                    }
+                }
+
+                const customerMatch = content.match(/[A-Za-z ]{3,}/);
+                const customer = customerMatch ? customerMatch[0].trim() : "Customer";
+                const subject = `${ordNum} ${customer}`;
+                const itemsFoundStr = [...new Set(itemsList)].join(', ');
+                const linksStr = [...new Set(foundLinks)].join('\n');
+
+                const body = `${itemsFoundStr}\n\nThanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\n\n${linksStr}\n\nRemember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech. Protip: Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check.\n\nBinMaster Technical Support Team\n402-434-9105\ntechnicalsupport@binmaster.com\nsupport.binmaster.com`;
+
+                const isSent = history.includes(ordNum);
+                const btnId = `btn-${i}`;
+                const card = document.createElement('div');
+                card.className = "p-6 border-2 border-gray-100 rounded-xl bg-gray-50 shadow-sm";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-bold text-lg text-blue-800">${ordNum} - ${customer}</h2>
+                        <button id="${btnId}" onclick="sendMail('${ordNum}', \`${encodeURIComponent(subject)}\`, \`${encodeURIComponent(body)}\`, '${btnId}')" 
+                                class="px-6 py-2 rounded-lg text-white font-bold transition ${isSent ? 'sent-btn' : 'bg-blue-500 hover:bg-blue-600'}">
+                            ${isSent ? 'Sent - Open Again?' : 'Open Email'}
+                        </button>
+                    </div>
+                    <pre class="text-sm border p-4 bg-white rounded-lg text-gray-700 leading-relaxed">${body}</pre>
+                `;
+                container.appendChild(card);
+            }
         }
 
-        function markSent(orderId, btnId) {
-            let history = getHistory();
-            if (!history.includes(orderId)) {
-                history.push(orderId);
-                localStorage.setItem('binmaster_sent_log', JSON.stringify(history));
+        function sendMail(id, sub, body, btnId) {
+            // Using %0D%0A for mailto line breaks to ensure Outlook/Gmail compatibility
+            window.location.href = `mailto:?subject=${sub}&body=${body}`;
+            
+            let history = JSON.parse(localStorage.getItem('sent_log') || '[]');
+            if (!history.includes(id)) {
+                history.push(id);
+                localStorage.setItem('sent_log', JSON.stringify(history));
             }
             const btn = document.getElementById(btnId);
             btn.classList.add('sent-btn');
-            btn.innerText = 'Sent - Ready to Resend';
-        }
-
-        function clearHistory() {
-            if(confirm("This will reset all green buttons back to blue. Proceed?")) {
-                localStorage.removeItem('binmaster_sent_log');
-                location.reload();
-            }
-        }
-
-        function processData() {
-            const input = document.getElementById('orderInput').value;
-            const container = document.getElementById('cardContainer');
-            const alertBox = document.getElementById('duplicateAlert');
-            const history = getHistory();
-            
-            container.innerHTML = '';
-            alertBox.classList.add('hidden');
-
-            // Split by lines and group items by the most recent ORD #
-            const lines = input.split('\n');
-            let orders = {};
-            let currentOrder = null;
-            let currentCustomer = "Customer";
-
-            lines.forEach(line => {
-                const orderMatch = line.match(/ORD-\d{2}-\d{5}/);
-                if (orderMatch) {
-                    currentOrder = orderMatch[0];
-                    // Try to grab customer name (text usually before/after the ORD #)
-                    const custMatch = line.replace(currentOrder, '').match(/[A-Za-z ]{3,}/);
-                    currentCustomer = custMatch ? custMatch[0].trim() : "Customer";
-                    orders[currentOrder] = { customer: currentCustomer, content: "" };
-                }
-                if (currentOrder) {
-                    orders[currentOrder].content += " " + line;
-                }
-            });
-
-            if (Object.keys(orders).length === 0) {
-                alert("No Order Numbers (ORD-XX-XXXXX) found. Please check your paste.");
-                return;
-            }
-
-            let duplicatesFound = false;
-
-            Object.entries(orders).forEach(([id, data], index) => {
-                const isSent = history.includes(id);
-                if (isSent) duplicatesFound = true;
-                
-                const btnId = `btn-${index}`;
-                
-                // Link Logic
-                let links = [];
-                for (const [key, urls] of Object.entries(resourceMap)) {
-                    if (data.content.toUpperCase().includes(key.toUpperCase())) {
-                        urls.forEach(u => links.push(`• ${key}: ${u}`));
-                    }
-                }
-                const linkSection = links.length > 0 ? [...new Set(links)].join('\n') : "• General Support: support.binmaster.com";
-
-                const subject = `${id} ${data.customer} | BinMaster Resources`;
-                const body = `Thanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\n\n${linkSection}\n\nRemember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech.\n\nProtip: Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check.\n\nBinMaster Technical Support Team\n402-434-9105\ntechnicalsupport@binmaster.com`;
-
-                const card = document.createElement('div');
-                card.className = "p-6 border-2 border-gray-100 rounded-xl bg-white shadow-sm hover:border-blue-200 transition";
-                card.innerHTML = `
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-                        <div>
-                            <span class="text-xs font-bold uppercase tracking-wider text-blue-500">Order Record</span>
-                            <h3 class="text-xl font-black text-gray-800">${id} — ${data.customer}</h3>
-                        </div>
-                        <a href="mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}" 
-                           id="${btnId}"
-                           onclick="markSent('${id}', '${btnId}')"
-                           class="w-full md:w-auto text-center px-6 py-2 rounded-lg text-white font-bold shadow-sm transition ${isSent ? 'sent-btn' : 'bg-blue-600 hover:bg-blue-700'}">
-                           ${isSent ? 'Sent - Ready to Resend' : 'Prepare Email'}
-                        </a>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <pre class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${body}</pre>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-
-            if (duplicatesFound) alertBox.classList.remove('hidden');
+            btn.innerText = 'Sent - Open Again?';
         }
     </script>
 </body>
