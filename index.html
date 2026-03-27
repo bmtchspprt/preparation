@@ -6,125 +6,151 @@
     <title>BinMaster Letter Builder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .sent-btn { background-color: #059669 !important; } /* Green-600 */
+        .sent-btn { background-color: #059669 !important; border-color: #059669 !important; }
+        pre { font-family: 'ui-sans-serif', system-ui, sans-serif; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-4 md:p-10">
-    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-        <h1 class="text-3xl font-bold text-blue-900 mb-2">Letter Builder</h1>
-        <p class="text-gray-600 mb-6">Paste your order data below to generate resources emails.</p>
+    <div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-900">BinMaster Letter Builder</h1>
+                <p class="text-gray-600">Paste your order data to map keywords to resources.</p>
+            </div>
+            <button onclick="clearHistory()" class="text-red-500 text-sm font-semibold hover:bg-red-50 px-3 py-2 rounded">
+                Reset Sent History
+            </button>
+        </div>
 
         <div class="mb-8">
-            <textarea id="orderInput" rows="6" class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none" 
-                placeholder="Paste PDF text or Excel rows here..."></textarea>
-            <div class="flex gap-4 mt-4">
-                <button onclick="generateLetters()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
-                    Generate Letters
-                </button>
-                <button onclick="clearHistory()" class="text-red-500 text-sm hover:underline">
-                    Clear Sent History
-                </button>
-            </div>
+            <textarea id="orderInput" rows="8" class="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none mb-4" 
+                placeholder="Paste the PDF text here (e.g. ORD-26-02644 Motion Industries...)"></textarea>
+            <button onclick="processData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">
+                Generate Resource Letters
+            </button>
         </div>
 
-        <div id="duplicateAlert" class="hidden mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
-            <strong>Note:</strong> Some orders were already processed and are marked in green.
+        <div id="duplicateAlert" class="hidden mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 flex items-center justify-between">
+            <span><strong>Notice:</strong> Some orders in this list were already sent (marked in green).</span>
+            <button onclick="this.parentElement.remove()" class="text-xl">&times;</button>
         </div>
 
-        <div id="letterContainer" class="space-y-6"></div>
+        <div id="cardContainer" class="space-y-6"></div>
     </div>
 
     <script>
-        // Mapping Table: Keyword -> Links
+        // Resource Mapping (Sourced from your spreadsheet)
         const resourceMap = {
             "BMRX": ["Rotary Manual", "Rotary Scenarios"],
-            "CNCR": ["Manual", "Wiring", "Distance explanation", "Bluetooth setup"],
+            "3D Scanner": ["3D Wiring", "3D Vision TCP Connect", "3D Manual"],
+            "BinCloud": ["Video", "Vessel Measurement Form", "BinCloud Firewall Rules"],
+            "CNCR": ["Manual", "Wiring", "Distance explanation", "Bluetooth setup", "Vessel Measurement Form"],
+            "NCR": ["Manual", "Wiring", "Distance explanation", "Bindisc setup", "Vessel Measurement Form"],
             "ProCap": ["Manual", "Wiring"],
+            "SmartBob": ["Manual", "Wiring"],
             "GRP": ["Single bayonet blade manual"],
             "GRMP": ["Mounting plate guide"]
         };
 
         function getHistory() {
-            return JSON.parse(localStorage.getItem('sentOrders') || '[]');
+            return JSON.parse(localStorage.getItem('binmaster_sent_log') || '[]');
         }
 
-        function markAsSent(orderId, btnId) {
+        function markSent(orderId, btnId) {
             let history = getHistory();
             if (!history.includes(orderId)) {
                 history.push(orderId);
-                localStorage.setItem('sentOrders', JSON.stringify(history));
+                localStorage.setItem('binmaster_sent_log', JSON.stringify(history));
             }
             const btn = document.getElementById(btnId);
             btn.classList.add('sent-btn');
-            btn.innerText = 'Sent - Click to Resend';
+            btn.innerText = 'Sent - Ready to Resend';
         }
 
         function clearHistory() {
-            if(confirm("Clear all 'Sent' history?")) {
-                localStorage.removeItem('sentOrders');
+            if(confirm("This will reset all green buttons back to blue. Proceed?")) {
+                localStorage.removeItem('binmaster_sent_log');
                 location.reload();
             }
         }
 
-        function generateLetters() {
+        function processData() {
             const input = document.getElementById('orderInput').value;
-            const container = document.getElementById('letterContainer');
+            const container = document.getElementById('cardContainer');
             const alertBox = document.getElementById('duplicateAlert');
             const history = getHistory();
             
             container.innerHTML = '';
             alertBox.classList.add('hidden');
 
-            // Find all instances of ORD-XX-XXXXX
-            const orderRegex = /(ORD-\d{2}-\d{5})/g;
-            const matches = [...input.matchAll(orderRegex)];
-            
-            if (matches.length === 0) {
-                alert("No Order Numbers found. Try pasting the text from your PDF.");
+            // Split by lines and group items by the most recent ORD #
+            const lines = input.split('\n');
+            let orders = {};
+            let currentOrder = null;
+            let currentCustomer = "Customer";
+
+            lines.forEach(line => {
+                const orderMatch = line.match(/ORD-\d{2}-\d{5}/);
+                if (orderMatch) {
+                    currentOrder = orderMatch[0];
+                    // Try to grab customer name (text usually before/after the ORD #)
+                    const custMatch = line.replace(currentOrder, '').match(/[A-Za-z ]{3,}/);
+                    currentCustomer = custMatch ? custMatch[0].trim() : "Customer";
+                    orders[currentOrder] = { customer: currentCustomer, content: "" };
+                }
+                if (currentOrder) {
+                    orders[currentOrder].content += " " + line;
+                }
+            });
+
+            if (Object.keys(orders).length === 0) {
+                alert("No Order Numbers (ORD-XX-XXXXX) found. Please check your paste.");
                 return;
             }
 
-            let foundDuplicates = false;
+            let duplicatesFound = false;
 
-            matches.forEach((match, index) => {
-                const orderId = match[0];
+            Object.entries(orders).forEach(([id, data], index) => {
+                const isSent = history.includes(id);
+                if (isSent) duplicatesFound = true;
+                
                 const btnId = `btn-${index}`;
                 
-                if (history.includes(orderId)) foundDuplicates = true;
-
-                // Simple logic: look at the text immediately following the order number
-                const context = input.substring(match.index, match.index + 500);
-                
+                // Link Logic
                 let links = [];
                 for (const [key, urls] of Object.entries(resourceMap)) {
-                    if (context.includes(key)) {
-                        urls.forEach(u => links.push(`${key}: ${u}`));
+                    if (data.content.toUpperCase().includes(key.toUpperCase())) {
+                        urls.forEach(u => links.push(`• ${key}: ${u}`));
                     }
                 }
+                const linkSection = links.length > 0 ? [...new Set(links)].join('\n') : "• General Support: support.binmaster.com";
 
-                const linkText = links.length > 0 ? links.join('\\n') : "General Resources";
-                
-                const subject = `${orderId} BinMaster Support Resources`;
-                const body = `Thanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\\n\\n${linkText}\\n\\nRemember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech. Protip: Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check.\\n\\nBinMaster Technical Support Team\\n402-434-9105`;
+                const subject = `${id} ${data.customer} | BinMaster Resources`;
+                const body = `Thanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\n\n${linkSection}\n\nRemember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech.\n\nProtip: Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check.\n\nBinMaster Technical Support Team\n402-434-9105\ntechnicalsupport@binmaster.com`;
 
                 const card = document.createElement('div');
-                card.className = "p-6 border rounded-lg bg-gray-50 shadow-sm";
+                card.className = "p-6 border-2 border-gray-100 rounded-xl bg-white shadow-sm hover:border-blue-200 transition";
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <h3 class="text-xl font-bold text-blue-800">${orderId}</h3>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-blue-500">Order Record</span>
+                            <h3 class="text-xl font-black text-gray-800">${id} — ${data.customer}</h3>
+                        </div>
                         <a href="mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}" 
                            id="${btnId}"
-                           onclick="markAsSent('${orderId}', '${btnId}')"
-                           class="px-4 py-2 rounded text-white font-bold transition ${history.includes(orderId) ? 'sent-btn' : 'bg-blue-500 hover:bg-blue-600'}">
-                           ${history.includes(orderId) ? 'Sent - Click to Resend' : 'Prepare Email'}
+                           onclick="markSent('${id}', '${btnId}')"
+                           class="w-full md:w-auto text-center px-6 py-2 rounded-lg text-white font-bold shadow-sm transition ${isSent ? 'sent-btn' : 'bg-blue-600 hover:bg-blue-700'}">
+                           ${isSent ? 'Sent - Ready to Resend' : 'Prepare Email'}
                         </a>
                     </div>
-                    <pre class="text-xs text-gray-700 whitespace-pre-wrap bg-white p-3 border rounded">${body}</pre>
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <pre class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${body}</pre>
+                    </div>
                 `;
                 container.appendChild(card);
             });
 
-            if (foundDuplicates) alertBox.classList.remove('hidden');
+            if (duplicatesFound) alertBox.classList.remove('hidden');
         }
     </script>
 </body>
