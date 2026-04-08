@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BinMaster – Email Prep Tool</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@600;700;800&display=swap');
+
+:root {
+  --bg:      #0d1117;
+  --s1:      #161b22;
+  --s2:      #21262d;
+  --border:  #30363d;
+  --accent:  #e8a020;
+  --accent2: #f5c842;
+  --text:    #e6edf3;
+  --muted:   #8b949e;
+  --danger:  #f85149;
+  --success: #3fb950;
+  --info:    #58a6ff;
+  --r:       6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;min-height:100vh;}
+
+/* HEADER */
+header{background:var(--s1);border-bottom:2px solid var(--accent);padding:12px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;}
+.logo span{color:var(--text);}
+.logo-sub{font-size:11px;color:var(--muted);letter-spacing:.6px;margin-top:1px;}
+
+/* LAYOUT */
+.layout{max-width:1400px;margin:0 auto;padding:20px 18px 60px;display:grid;grid-template-columns:1fr 340px;gap:20px;}
+
+/* PANEL */
+.panel{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:18px;}
+.panel:last-child{margin-bottom:0;}
+.panel-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:14px;}
+
+/* FIELDS */
+.fields-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.fg{display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px;}
+.fg label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;}
+.fg input{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:8px 10px;font-family:'Barlow',sans-serif;font-size:14px;transition:border-color .15s;}
+.fg input:focus{outline:none;border-color:var(--accent);}
+.fg input.err{border-color:var(--danger);}
+
+/* PRODUCT BUTTONS */
+#btn-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.pb{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:5px 10px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none;white-space:nowrap;}
+.pb:hover{border-color:var(--accent);color:var(--accent);}
+.pb.active{background:var(--accent);border-color:var(--accent);color:#000;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;margin-bottom:14px;max-height:420px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:var(--s2);border-bottom:1px solid var(--border);padding:8px 10px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);position:sticky;top:0;z-index:2;}
+tbody td{border-bottom:1px solid var(--border);padding:6px 8px;vertical-align:middle;}
+tbody tr{background:var(--bg);}
+tbody tr.sel{background:#1b2333;}
+tbody tr:hover{background:var(--s2);}
+tbody tr.sel:hover{background:#1f293f;}
+.td-name{font-weight:600;color:var(--text);white-space:nowrap;}
+.td-cat{font-size:11px;color:var(--muted);font-style:italic;white-space:nowrap;}
+.td-link a{color:var(--info);text-decoration:none;font-size:11px;word-break:break-all;}
+.td-link a:hover{text-decoration:underline;}
+.td-info input{background:transparent;border:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:12px;width:100%;min-width:140px;}
+.td-info input:focus{outline:none;}
+.td-check{text-align:center;}
+.td-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
+
+/* ACTIONS */
+.action-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn-gen{background:var(--accent);border:none;border-radius:var(--r);color:#000;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;padding:10px 24px;cursor:pointer;text-transform:uppercase;transition:background .15s;}
+.btn-gen:hover{background:var(--accent2);}
+.btn-sec{background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--muted);font-family:'Barlow',sans-serif;font-size:12px;padding:8px 14px;cursor:pointer;transition:all .15s;}
+.btn-sec:hover{border-color:var(--danger);color:var(--danger);}
+.btn-sec.blue:hover{border-color:var(--info);color:var(--info);}
+
+/* PREVIEW */
+#preview{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:11.5px;line-height:1.75;color:var(--muted);white-space:pre-wrap;min-height:70px;margin-bottom:10px;font-family:'Courier New',monospace;max-height:200px;overflow-y:auto;}
+#preview.has{color:var(--text);}
+
+/* HISTORY */
+#hist-list{display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;}
+.hi{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:8px 11px;display:flex;flex-direction:column;gap:2px;}
+.hi-ord{font-weight:700;color:var(--accent);font-size:13px;}
+.hi-email{color:var(--text);font-size:12px;}
+.hi-prods{color:var(--muted);font-size:11px;font-style:italic;}
+.hi-date{color:var(--muted);font-size:10px;}
+.hi-empty{color:var(--muted);font-size:12px;font-style:italic;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--accent);border-radius:8px;padding:28px 30px;max-width:420px;width:90%;text-align:center;}
+.modal h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;color:var(--accent);margin-bottom:10px;letter-spacing:1px;}
+.modal p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:18px;}
+.modal-btns{display:flex;gap:10px;justify-content:center;}
+.modal-btns button{padding:8px 20px;border-radius:var(--r);font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;}
+.btn-cancel{background:var(--s2);color:var(--muted);}
+.btn-cancel:hover{color:var(--text);}
+.btn-proceed{background:var(--accent);color:#000;}
+.btn-proceed:hover{background:var(--accent2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--success);color:#000;font-weight:700;font-size:13px;padding:10px 18px;border-radius:var(--r);display:none;z-index:200;}
+.toast.show{display:block;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">BinMaster <span>Email Prep</span></div>
+    <div class="logo-sub">Customer Resource Email Generator</div>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT COLUMN -->
+  <div>
+
+    <div class="panel">
+      <div class="panel-title">Email Details</div>
+      <div class="fields-row">
+        <div class="fg">
+          <label>ORD Number</label>
+          <input type="text" id="ord" placeholder="e.g. 12345" autocomplete="off"/>
+        </div>
+        <div class="fg">
+          <label>Recipient Email</label>
+          <input type="email" id="email" placeholder="customer@example.com" autocomplete="off"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Quick Select Products <span style="color:var(--muted);font-weight:400;font-size:11px">(click to toggle)</span></div>
+      <div id="btn-grid"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-sec blue" onclick="selectAll()">Select All</button>
+        <button class="btn-sec" onclick="clearSel()">Clear Selection</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Product Table <span style="color:var(--muted);font-weight:400;font-size:11px">(editable · Info column is free-form)</span></div>
+      <div class="tbl-wrap">
+        <table id="prod-table">
+          <thead>
+            <tr>
+              <th style="width:30px">&#10003;</th>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Link</th>
+              <th style="min-width:180px">Info</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Email Preview</div>
+      <div id="preview">Select products and fill in the fields above, then click Generate.</div>
+      <div class="action-row">
+        <button class="btn-gen" onclick="generate()">&#9889; Generate &amp; Open Email</button>
+        <button class="btn-sec blue" onclick="updatePreview()">Preview</button>
+        <button class="btn-sec" onclick="clearAll()">Clear All</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <div class="panel">
+      <div class="panel-title">Sent History</div>
+      <div id="hist-list"><div class="hi-empty">No emails sent yet.</div></div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button class="btn-sec" onclick="clearHistory()">Clear History</button>
+        <button class="btn-sec blue" onclick="exportHistory()">Export CSV</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DUPLICATE ORD MODAL -->
+<div class="overlay" id="dup-overlay">
+  <div class="modal">
+    <h3>&#9888; ORD Already Sent</h3>
+    <p id="dup-msg">This ORD number has already been sent. Do you want to send it again?</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-proceed" onclick="proceedAnyway()">Send Anyway</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Email client opened!</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  PRODUCT DATA  (extracted from BinMaster xlsx)
+// ══════════════════════════════════════════════
+const PRODUCTS = [
+  {name:"3D Level Scanner",             cat:"3D Scanner",           url:"",                                                                                      info:""},
+  {name:"3D LevelScanner Multi-Scanner",cat:"Software",             url:"",                                                                                      info:""},
+  {name:"3D MultiVision Software Manual",cat:"Software",            url:"https://support.binmaster.com/kb/view/7d8bee17-d629-4075-a18b-7e0725f4b52a",            info:""},
+  {name:"A-Frame Load Cell",            cat:"Weight",               url:"",                                                                                      info:""},
+  {name:"AEH-100/200",                  cat:"Network Devices",      url:"https://support.binmaster.com/kb/view/d173cef9-94a1-42ce-b043-2e297a195134",            info:""},
+  {name:"Air Pads",                     cat:"Aeration/Flow",        url:"https://support.binmaster.com/kb/view/b5fefb58-7dd4-463b-9f32-3adaa07b5d3b",            info:""},
+  {name:"Airbrator",                    cat:"Aeration/Flow",        url:"https://support.binmaster.com/kb/view/b5fefb58-7dd4-463b-9f32-3adaa07b5d3b",            info:""},
+  {name:"BinCloud",                     cat:"Software",             url:"https://support-genie--davezelnio.replit.app/kb/view/d65c70fd-45a6-4720-9db6-de9f61348bae",info:""},
+  {name:"BinCloud Gateway",             cat:"Network Devices",      url:"",                                                                                      info:""},
+  {name:"BinDisc Setup Wizard",         cat:"Non-contact Radar",    url:"https://bmtchspprt.github.io/radar-setup/bindisc.html",                                 info:""},
+  {name:"Binventory/Ebob",              cat:"Software",             url:"https://support.binmaster.com/kb/view/5d310bc3-e081-4124-a491-57b62a079870",            info:""},
+  {name:"BM-25",                        cat:"Diaphragm Switch",     url:"",                                                                                      info:""},
+  {name:"BM-45",                        cat:"Diaphragm Switch",     url:"",                                                                                      info:""},
+  {name:"BM-65",                        cat:"Diaphragm Switch",     url:"",                                                                                      info:""},
+  {name:"BM-T",                         cat:"Tilt Switch",          url:"",                                                                                      info:""},
+  {name:"BM-TSM",                       cat:"Tilt Switch",          url:"",                                                                                      info:""},
+  {name:"BMRX-100",                     cat:"Rotary",               url:"",                                                                                      info:""},
+  {name:"BMRX-200",                     cat:"Rotary",               url:"",                                                                                      info:""},
+  {name:"BMRX-300",                     cat:"Rotary",               url:"",                                                                                      info:""},
+  {name:"C-100",                        cat:"Display",              url:"",                                                                                      info:""},
+  {name:"C-50",                         cat:"Display",              url:"",                                                                                      info:""},
+  {name:"Canister Load Cell",           cat:"Weight",               url:"",                                                                                      info:""},
+  {name:"CNCR",                         cat:"Non-contact Radar",    url:"https://support.binmaster.com/kb/view/d71297d9-77ac-49f8-97a4-6d183bf3adbc",            info:""},
+  {name:"CNCR-110",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"CNCR-120",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"CNCR-130",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"CNCR-190",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"CNCR-210",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"CNCR-220",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"CNCR-230",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"CNCR-320",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"CNCR-390",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"CNCR-400",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
+  {name:"Compact (Cap.)",               cat:"Capacitance Probes",   url:"",                                                                                      info:""},
+  {name:"Compact (Vib.)",               cat:"Vibrating Probes",     url:"",                                                                                      info:""},
+  {name:"Downloads/Drivers/Software",   cat:"General",              url:"https://support.binmaster.com/kb/view/cecac1da-e4ab-4ac1-a511-9672176f3dd6",            info:""},
+  {name:"DPM-100",                      cat:"Display",              url:"",                                                                                      info:""},
+  {name:"DPM-100 Modbus",               cat:"Display",              url:"https://binmaster.com/amfile/file/download/file/1049/product/4799/",                    info:""},
+  {name:"DPM-200",                      cat:"Display",              url:"",                                                                                      info:""},
+  {name:"DPM-300",                      cat:"Display",              url:"",                                                                                      info:""},
+  {name:"DPM-400",                      cat:"Display",              url:"",                                                                                      info:""},
+  {name:"DPM-500",                      cat:"Display",              url:"",                                                                                      info:""},
+  {name:"Extended",                     cat:"Vibrating Probes",     url:"",                                                                                      info:""},
+  {name:"Flow Detect 2000",             cat:"Aeration/Flow",        url:"https://binmaster.com/amfile/file/download/file/1151/product/4230/",                    info:""},
+  {name:"FVL-200",                      cat:"Laser",                url:"https://binmaster.com/amfile/file/download/file/1266/product/4263/",                    info:""},
+  {name:"GWR-2000",                     cat:"Guided Wave Radar",    url:"",                                                                                      info:""},
+  {name:"GWR-3000",                     cat:"Guided Wave Radar",    url:"",                                                                                      info:""},
+  {name:"HCM-100",                      cat:"Network Devices",      url:"https://support.binmaster.com/kb/view/7f8bdc4e-48a6-4ed4-b773-cc6a858c3b05",            info:""},
+  {name:"LL-100",                       cat:"Laser",                url:"https://www.binmaster.com/amfile/file/download/file/1172/product/4238/",                info:""},
+  {name:"LTR-100",                      cat:"Network Devices",      url:"https://support.binmaster.com/kb/view/d33f37bb-9332-420a-869f-8f30113caf49",            info:""},
+  {name:"Maxima +",                     cat:"Rotary",               url:"",                                                                                      info:""},
+  {name:"Mini Rotary",                  cat:"Rotary",               url:"",                                                                                      info:""},
+  {name:"NCR",                          cat:"Non-contact Radar",    url:"https://support.binmaster.com/kb/view/bc8e6a67-a401-4bc6-aa83-3423a0282860",            info:""},
+  {name:"NCR-80",                       cat:"Non-contact Radar",    url:"https://binmaster.com/amfile/file/download/file/1195/product/4274/",                    info:""},
+  {name:"NCR-86",                       cat:"Non-contact Radar",    url:"https://binmaster.com/amfile/file/download/file/1045/product/4700/",                    info:""},
+  {name:"Pancake Load Cell",            cat:"Weight",               url:"",                                                                                      info:""},
+  {name:"Plugged Chute Detector",       cat:"Diaphragm Switch",     url:"",                                                                                      info:""},
+  {name:"Preparing to Install",         cat:"General",              url:"https://support.binmaster.com/kb/view/3727b4b2-80fb-48b0-82a6-8f93994392a1",            info:""},
+  {name:"Pro Cap",                      cat:"Capacitance Probes",   url:"",                                                                                      info:""},
+  {name:"SmartBob",                     cat:"SmartBob",             url:"https://support.binmaster.com/kb/view/1e1c4133-1be5-46fe-90b6-7c7a4111e7f0",            info:""},
+  {name:"SmartBob AO",                  cat:"SmartBob",             url:"",                                                                                      info:""},
+  {name:"SmartBob II",                  cat:"SmartBob",             url:"",                                                                                      info:""},
+  {name:"SPL-200",                      cat:"Laser",                url:"https://binmaster.com/amfile/file/download/file/1266/product/4263/",                    info:""},
+  {name:"Standard",                     cat:"Vibrating Probes",     url:"",                                                                                      info:""},
+  {name:"TC-100",                       cat:"Network Devices",      url:"https://support.binmaster.com/kb/view/e8e8f1c6-6635-4f2d-9798-528b2df6d3e9",            info:""},
+  {name:"TS-100",                       cat:"Ultrasonic",           url:"https://support.binmaster.com/kb/view/ad65d8bc-ee56-47d5-9354-086c7cf0ae21",            info:""},
+  {name:"TS-200",                       cat:"Ultrasonic",           url:"https://support.binmaster.com/kb/view/aaa5f679-d2ed-4e3b-b912-58bd4c975ee9",            info:""},
+  {name:"Wireless Transceivers",        cat:"Network Devices",      url:"",                                                                                      info:""},
+];
+// Already alphabetically sorted above
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const selected = new Set();
+
+function getHistory(){
+  try{ return JSON.parse(localStorage.getItem('bm_history')||'[]'); }
+  catch(e){ return []; }
+}
+function saveHistory(h){ localStorage.setItem('bm_history',JSON.stringify(h)); }
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+  buildButtons();
+  buildTable();
+  renderHistory();
+  document.getElementById('ord').addEventListener('input',updatePreview);
+  document.getElementById('email').addEventListener('input',updatePreview);
+});
+
+function buildButtons(){
+  const grid = document.getElementById('btn-grid');
+  grid.innerHTML = '';
+  PRODUCTS.forEach(function(p,i){
+    const btn = document.createElement('button');
+    btn.className = 'pb';
+    btn.textContent = p.name;
+    btn.dataset.idx = i;
+    btn.addEventListener('click',function(){ toggleProduct(i,btn); });
+    grid.appendChild(btn);
+  });
+}
+
+function buildTable(){
+  const tbody = document.getElementById('tbl-body');
+  tbody.innerHTML = '';
+  PRODUCTS.forEach(function(p,i){
+    const tr = document.createElement('tr');
+    tr.id = 'row-'+i;
+
+    // checkbox cell
+    const tdCk = document.createElement('td');
+    tdCk.className = 'td-check';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.dataset.idx = i;
+    cb.addEventListener('change',function(){ toggleFromTable(i,cb); });
+    tdCk.appendChild(cb);
+
+    // name cell
+    const tdNm = document.createElement('td');
+    tdNm.className = 'td-name';
+    tdNm.textContent = p.name;
+
+    // category cell
+    const tdCt = document.createElement('td');
+    tdCt.className = 'td-cat';
+    tdCt.textContent = p.cat;
+
+    // link cell
+    const tdLk = document.createElement('td');
+    tdLk.className = 'td-link';
+    if(p.url){
+      const a = document.createElement('a');
+      a.href = p.url;
+      a.target = '_blank';
+      a.title = p.url;
+      const short = p.url.replace(/^https?:\/\//,'');
+      a.textContent = short.length > 55 ? short.substring(0,55)+'…' : short;
+      tdLk.appendChild(a);
+    } else {
+      tdLk.innerHTML = '<span style="color:var(--muted);font-style:italic">—</span>';
+    }
+
+    // info cell
+    const tdIn = document.createElement('td');
+    tdIn.className = 'td-info';
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.placeholder = 'Optional notes…';
+    inp.dataset.idx = i;
+    inp.addEventListener('input',function(){ PRODUCTS[i].info = inp.value; updatePreview(); });
+    tdIn.appendChild(inp);
+
+    tr.appendChild(tdCk);
+    tr.appendChild(tdNm);
+    tr.appendChild(tdCt);
+    tr.appendChild(tdLk);
+    tr.appendChild(tdIn);
+    tbody.appendChild(tr);
+  });
+}
+
+// ══════════════════════════════════════════════
+//  SELECTION
+// ══════════════════════════════════════════════
+function toggleProduct(idx,btn){
+  if(selected.has(idx)){
+    selected.delete(idx);
+    btn.classList.remove('active');
+    const cb = document.querySelector('#row-'+idx+' input[type=checkbox]');
+    if(cb) cb.checked = false;
+    document.getElementById('row-'+idx).classList.remove('sel');
+  } else {
+    selected.add(idx);
+    btn.classList.add('active');
+    const cb = document.querySelector('#row-'+idx+' input[type=checkbox]');
+    if(cb) cb.checked = true;
+    document.getElementById('row-'+idx).classList.add('sel');
+    document.getElementById('row-'+idx).scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  updatePreview();
+}
+
+function toggleFromTable(idx,cb){
+  const btn = document.querySelector('.pb[data-idx="'+idx+'"]');
+  if(cb.checked){
+    selected.add(idx);
+    if(btn) btn.classList.add('active');
+    document.getElementById('row-'+idx).classList.add('sel');
+  } else {
+    selected.delete(idx);
+    if(btn) btn.classList.remove('active');
+    document.getElementById('row-'+idx).classList.remove('sel');
+  }
+  updatePreview();
+}
+
+function selectAll(){
+  PRODUCTS.forEach(function(_,i){
+    selected.add(i);
+    const btn = document.querySelector('.pb[data-idx="'+i+'"]');
+    if(btn) btn.classList.add('active');
+    const cb = document.querySelector('#row-'+i+' input[type=checkbox]');
+    if(cb) cb.checked = true;
+    document.getElementById('row-'+i).classList.add('sel');
+  });
+  updatePreview();
+}
+
+function clearSel(){
+  selected.clear();
+  document.querySelectorAll('.pb').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('#tbl-body input[type=checkbox]').forEach(function(c){ c.checked=false; });
+  document.querySelectorAll('#tbl-body tr').forEach(function(r){ r.classList.remove('sel'); });
+  updatePreview();
+}
+
+// ══════════════════════════════════════════════
+//  EMAIL BUILDER
+// ══════════════════════════════════════════════
+function getSelProds(){
+  const arr = [];
+  const sorted = Array.from(selected).sort(function(a,b){return a-b;});
+  sorted.forEach(function(i){ arr.push(PRODUCTS[i]); });
+  return arr;
+}
+
+function buildEmailParts(){
+  const ord   = document.getElementById('ord').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const prods = getSelProds();
+  const subject = 'BinMaster Preparation ' + ord;
+  const prodNames = prods.map(function(p){ return p.name; }).join(', ');
+
+  let body = '';
+  body += email + '\r\n';
+  body += prodNames + '\r\n';
+  body += 'Greetings!\r\n';
+  body += 'Thanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\r\n';
+  prods.forEach(function(p){
+    body += p.url ? p.name+' \u2013 '+p.url+'\r\n' : p.name+'\r\n';
+  });
+  body += 'Remember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech.\r\n';
+  body += '\r\n';
+  body += 'BinMaster Technical Support\r\n';
+  body += 'https://www.binmaster.com\r\n';
+  body += '402-434-9102\r\n';
+  body += '3435 Schworer Dr\r\n';
+  body += 'Lincoln, NE 68504';
+
+  return {subject:subject, body:body, email:email};
+}
+
+function updatePreview(){
+  const el = document.getElementById('preview');
+  const parts = buildEmailParts();
+  const prods = getSelProds();
+  if(!prods.length && !document.getElementById('ord').value.trim()){
+    el.textContent = 'Select products and fill in the fields above, then click Generate.';
+    el.classList.remove('has');
+    return;
+  }
+  el.textContent = 'TO: '+(parts.email||'(no email)')+'\nSUBJECT: '+parts.subject+'\n\n'+parts.body;
+  el.classList.add('has');
+}
+
+// ══════════════════════════════════════════════
+//  GENERATE
+// ══════════════════════════════════════════════
+function generate(){
+  const ord   = document.getElementById('ord').value.trim();
+  const email = document.getElementById('email').value.trim();
+
+  let ok = true;
+  if(!ord){  document.getElementById('ord').classList.add('err');   ok=false; }
+  else       document.getElementById('ord').classList.remove('err');
+  if(!email){ document.getElementById('email').classList.add('err'); ok=false; }
+  else        document.getElementById('email').classList.remove('err');
+  if(!ok) return;
+  if(!selected.size){ alert('Please select at least one product.'); return; }
+
+  const hist = getHistory();
+  const dup  = hist.find(function(h){ return h.ord===ord; });
+  if(dup){
+    const d = new Date(dup.date);
+    document.getElementById('dup-msg').innerHTML =
+      'ORD <strong>'+escHtml(ord)+'</strong> was already sent on <strong>'+
+      d.toLocaleDateString()+' '+d.toLocaleTimeString()+'</strong> to <strong>'+
+      escHtml(dup.email)+'</strong>.<br>Do you want to send it again?';
+    document.getElementById('dup-overlay').classList.add('open');
+    return;
+  }
+  doGenerate();
+}
+
+function closeModal(){
+  document.getElementById('dup-overlay').classList.remove('open');
+}
+
+function proceedAnyway(){
+  closeModal();
+  doGenerate();
+}
+
+function doGenerate(){
+  const parts = buildEmailParts();
+  const ord   = document.getElementById('ord').value.trim();
+  const prods = getSelProds();
+
+  // save history
+  const hist = getHistory();
+  hist.unshift({
+    ord:   ord,
+    email: parts.email,
+    prods: prods.map(function(p){ return p.name; }),
+    date:  new Date().toISOString()
+  });
+  saveHistory(hist);
+  renderHistory();
+
+  // build mailto - encode body carefully
+  const rawBody = parts.body.replace(/\r\n/g,'\n');
+  const encodedBody = encodeURIComponent(rawBody);
+  const encodedSubj = encodeURIComponent(parts.subject);
+  const encodedTo   = encodeURIComponent(parts.email);
+  const href = 'mailto:'+encodedTo+'?subject='+encodedSubj+'&body='+encodedBody;
+
+  const a = document.createElement('a');
+  a.href = href;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  showToast('Email client opened!');
+}
+
+// ══════════════════════════════════════════════
+//  HISTORY
+// ══════════════════════════════════════════════
+function renderHistory(){
+  const el   = document.getElementById('hist-list');
+  const hist = getHistory();
+  if(!hist.length){
+    el.innerHTML = '<div class="hi-empty">No emails sent yet.</div>';
+    return;
+  }
+  el.innerHTML = hist.map(function(h){
+    const d     = new Date(h.date);
+    const prods = (h.prods||[]).join(', ');
+    return '<div class="hi">'+
+      '<div class="hi-ord">ORD: '+escHtml(h.ord)+'</div>'+
+      '<div class="hi-email">'+escHtml(h.email)+'</div>'+
+      '<div class="hi-prods">'+escHtml(prods||'\u2014')+'</div>'+
+      '<div class="hi-date">'+d.toLocaleDateString()+' '+d.toLocaleTimeString()+'</div>'+
+      '</div>';
+  }).join('');
+}
+
+function clearHistory(){
+  if(confirm('Clear all sent history? This cannot be undone.')){
+    localStorage.removeItem('bm_history');
+    renderHistory();
+  }
+}
+
+function exportHistory(){
+  const hist = getHistory();
+  if(!hist.length){ alert('No history to export.'); return; }
+  let csv = 'ORD Number,Email,Products,Date Sent\n';
+  hist.forEach(function(h){
+    const prods = (h.prods||[]).join('; ');
+    const d = new Date(h.date).toLocaleString();
+    csv += '"'+h.ord+'","'+h.email+'","'+prods+'","'+d+'"\n';
+  });
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'binmaster_sent_history.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function clearAll(){
+  document.getElementById('ord').value = '';
+  document.getElementById('email').value = '';
+  clearSel();
+  PRODUCTS.forEach(function(p){ p.info=''; });
+  document.querySelectorAll('.td-info input').forEach(function(el){ el.value=''; });
+  var prev = document.getElementById('preview');
+  prev.textContent = 'Select products and fill in the fields above, then click Generate.';
+  prev.classList.remove('has');
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); },3000);
+}
+
+function escHtml(str){
+  return String(str||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
