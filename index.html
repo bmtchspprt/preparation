@@ -37,18 +37,6 @@ header{background:var(--white);border-bottom:4px solid var(--red);box-shadow:0 1
 .hdr-text h1{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text);}
 .hdr-text .sub{font-size:9px;text-transform:uppercase;letter-spacing:.9px;color:var(--text-m);margin-top:3px;}
 
-/* GitHub config bar */
-.cfg-bar{background:#FFFDF0;border-bottom:1px solid #E8D88A;padding:6px 22px;display:flex;align-items:center;gap:12px;font-size:11px;}
-.cfg-bar label{font-weight:700;color:var(--text-m);text-transform:uppercase;letter-spacing:.5px;font-size:10px;}
-.cfg-bar input{border:1.5px solid var(--border);border-radius:var(--r);padding:4px 9px;font-size:11px;color:var(--text);outline:none;background:var(--white);}
-.cfg-bar input:focus{border-color:var(--blue);}
-.cfg-bar input[type=password]{font-family:monospace;letter-spacing:2px;}
-.cfg-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:12px;font-weight:600;}
-.cfg-status.ok{background:var(--grn-lt);color:var(--green);}
-.cfg-status.err{background:var(--red-lt);color:var(--red);}
-.cfg-status.idle{background:#F0F2F5;color:var(--text-m);}
-.cfg-note{font-size:10px;color:var(--text-m);font-style:italic;}
-
 .wrap{max-width:1520px;margin:0 auto;padding:13px;display:flex;flex-direction:column;gap:11px;}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 
@@ -159,26 +147,6 @@ td[contenteditable=true]:focus{background:var(--blue-lt);outline:1px solid var(-
   </div>
 </header>
 
-<!-- ── GITHUB CONFIG BAR ─────────────────────────────────────────────────── -->
-<div class="cfg-bar">
-  <label>GitHub</label>
-  <div style="display:flex;flex-direction:column;gap:2px;">
-    <input type="text" id="cfg-owner" placeholder="owner (e.g. binmaster)" style="width:160px;" oninput="saveCfg()">
-    <span style="font-size:9px;color:#999;">Owner / Org</span>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:2px;">
-    <input type="text" id="cfg-repo" placeholder="repo (e.g. prep-tool)" style="width:160px;" oninput="saveCfg()">
-    <span style="font-size:9px;color:#999;">Repository</span>
-  </div>
-  <div style="display:flex;flex-direction:column;gap:2px;">
-    <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx" style="width:220px;" oninput="saveCfg()">
-    <span style="font-size:9px;color:#999;">Fine-grained token (contents: read &amp; write)</span>
-  </div>
-  <button class="btn btn-gray btn-sm" onclick="testGitHub()">&#128279; Test</button>
-  <span id="cfg-status" class="cfg-status idle">&#9679; Not configured</span>
-  <span class="cfg-note">Settings saved to this browser only</span>
-</div>
-
 <div class="wrap">
 
   <div class="card">
@@ -280,11 +248,9 @@ td[contenteditable=true]:focus{background:var(--blue-lt);outline:1px solid var(-
       </div>
     </div>
 
-    <!-- Sent history -->
     <div class="card">
       <div class="card-hd">
         &#128203; Sent Email History
-        <span style="font-size:9px;font-weight:400;color:#90A0B0;text-transform:none;letter-spacing:0;font-style:italic;" id="hist-source-note">&nbsp;(localStorage fallback)</span>
         <span id="h-count" class="badge bdg-red" style="margin-left:auto;">0</span>
       </div>
       <div class="tbl-wrap">
@@ -326,6 +292,20 @@ td[contenteditable=true]:focus{background:var(--blue-lt);outline:1px solid var(-
 <div id="toast"></div>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════════════
+// GITHUB CONFIG — paste your token into GH_TOKEN before committing
+// ═══════════════════════════════════════════════════════════════════════════
+const GH_OWNER = 'bmtchspprt';
+const GH_REPO  = 'preparation';
+const GH_TOKEN = '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'; // ← paste token here, keep repo private
+
+function ghApiUrl() {
+  return `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/history/sent.json`;
+}
+function ghHeaders() {
+  return { 'Authorization': `Bearer ${GH_TOKEN}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PRODUCT DATA
 // ═══════════════════════════════════════════════════════════════════════════
@@ -400,132 +380,43 @@ let sentHistory = [];
 let _ghFileSha  = null;
 
 // ═══════════════════════════════════════════════════════════════════════════
-// GITHUB CONFIG
-// ═══════════════════════════════════════════════════════════════════════════
-const CFG_KEY = 'bm_gh_cfg';
-
-function loadCfg() {
-  try {
-    const c = JSON.parse(localStorage.getItem(CFG_KEY) || '{}');
-    if (c.owner) document.getElementById('cfg-owner').value = c.owner;
-    if (c.repo)  document.getElementById('cfg-repo').value  = c.repo;
-    if (c.token) document.getElementById('cfg-token').value = c.token;
-  } catch(e) {}
-}
-
-function saveCfg() {
-  const cfg = { owner: cfgVal('cfg-owner'), repo: cfgVal('cfg-repo'), token: cfgVal('cfg-token') };
-  try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch(e) {}
-}
-
-function getCfg() {
-  return { owner: cfgVal('cfg-owner'), repo: cfgVal('cfg-repo'), token: cfgVal('cfg-token') };
-}
-
-function cfgVal(id) { return document.getElementById(id).value.trim(); }
-
-function ghReady() {
-  const c = getCfg();
-  return c.owner && c.repo && c.token;
-}
-
-function ghApiUrl() {
-  const c = getCfg();
-  return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/history/sent.json`;
-}
-
-function ghHeaders() {
-  return { 'Authorization': `Bearer ${getCfg().token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
-}
-
-function setStatus(state, msg) {
-  const el = document.getElementById('cfg-status');
-  el.className = `cfg-status ${state}`;
-  el.textContent = msg;
-}
-
-async function testGitHub() {
-  if (!ghReady()) { setStatus('err','⚠ Fill all fields'); return; }
-  setStatus('idle','⏳ Testing…');
-  try {
-    const r = await fetch(ghApiUrl(), { headers: ghHeaders() });
-    if (r.status === 200 || r.status === 404) {
-      setStatus('ok','✓ Connected');
-      toast('✓ GitHub connection OK. Loading history…');
-      await loadHistory();
-    } else {
-      const d = await r.json().catch(()=>({}));
-      setStatus('err',`✗ ${r.status}`);
-      toast(`GitHub error ${r.status}: ${d.message||'check token/repo'}`);
-    }
-  } catch(e) {
-    setStatus('err','✗ Network error');
-    toast('Network error — check owner/repo spelling and token.');
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
 // HISTORY
 // ═══════════════════════════════════════════════════════════════════════════
 async function loadHistory() {
-  if (!ghReady()) {
-    try { sentHistory = JSON.parse(localStorage.getItem('bm_hist') || '[]'); } catch(e) { sentHistory = []; }
-    document.getElementById('hist-source-note').textContent = ' (localStorage — configure GitHub above for shared history)';
-    renderHist();
-    return;
-  }
-
   try {
     const r = await fetch(ghApiUrl(), { headers: ghHeaders() });
     if (r.status === 404) {
-      sentHistory = [];
-      _ghFileSha  = null;
-      document.getElementById('hist-source-note').textContent = ' (GitHub — history/sent.json, new file)';
-      renderHist();
-      return;
+      sentHistory = []; _ghFileSha = null; renderHist(); return;
     }
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
     _ghFileSha  = data.sha;
-    const decoded = atob(data.content.replace(/\n/g,''));
-    sentHistory = JSON.parse(decoded);
-    document.getElementById('hist-source-note').textContent = ' (GitHub — history/sent.json)';
-    setStatus('ok','✓ Connected');
+    sentHistory = JSON.parse(atob(data.content.replace(/\n/g,'')));
   } catch(e) {
-    toast(`Could not load history from GitHub: ${e.message}`);
-    try { sentHistory = JSON.parse(localStorage.getItem('bm_hist') || '[]'); } catch(e2) { sentHistory = []; }
-    document.getElementById('hist-source-note').textContent = ' (localStorage fallback — GitHub read failed)';
+    toast(`Could not load history: ${e.message} — using local backup.`);
+    try { sentHistory = JSON.parse(localStorage.getItem('bm_hist')||'[]'); } catch(e2) { sentHistory=[]; }
   }
   renderHist();
 }
 
 async function saveHistory() {
   try { localStorage.setItem('bm_hist', JSON.stringify(sentHistory)); } catch(e) {}
-
-  if (!ghReady()) return;
-
   const content = btoa(unescape(encodeURIComponent(JSON.stringify(sentHistory, null, 2))));
   const body = { message: `Update sent history (${new Date().toISOString()})`, content };
   if (_ghFileSha) body.sha = _ghFileSha;
-
   try {
-    const r = await fetch(ghApiUrl(), { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
-    if (!r.ok) {
-      const d = await r.json().catch(()=>({}));
-      toast(`⚠ History saved locally but GitHub write failed: ${d.message || r.status}`);
-      return;
-    }
+    const r = await fetch(ghApiUrl(), { method:'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+    if (!r.ok) { const d = await r.json().catch(()=>({})); toast(`\u26a0 GitHub write failed: ${d.message||r.status}`); return; }
     const data = await r.json();
     _ghFileSha = data.content.sha;
   } catch(e) {
-    toast(`⚠ GitHub write error: ${e.message}. History saved locally.`);
+    toast(`\u26a0 GitHub write error: ${e.message}`);
   }
 }
 
 async function recordSent(ord, email) {
   if (!ord && !email) return;
-  const exists = sentHistory.some(h => h.ord.toLowerCase() === (ord||'').toLowerCase());
-  if (exists) return;
+  if (sentHistory.some(h => h.ord.toLowerCase() === (ord||'').toLowerCase())) return;
   const date = new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
   sentHistory.push({ord: ord||'—', email: email||'—', date});
   renderHist();
@@ -552,17 +443,11 @@ function renderHist() {
   });
 }
 
-async function delHist(i) {
-  sentHistory.splice(i,1);
-  renderHist();
-  await saveHistory();
-}
+async function delHist(i) { sentHistory.splice(i,1); renderHist(); await saveHistory(); }
 
 async function clearHist() {
   if (!confirm('Clear all sent email history?')) return;
-  sentHistory = [];
-  renderHist();
-  await saveHistory();
+  sentHistory = []; renderHist(); await saveHistory();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -579,9 +464,7 @@ function onOrdInput() {
     document.getElementById('dup-msg').textContent =
       `ORD "${found.ord}" was previously sent to ${found.email} on ${found.date}. Any further emails for this ORD should be considered a duplicate.`;
     document.getElementById('dup-modal').classList.add('on');
-  } else {
-    _lastWarnedOrd = '';
-  }
+  } else { _lastWarnedOrd = ''; }
 }
 function closeModal() { document.getElementById('dup-modal').classList.remove('on'); }
 
@@ -589,7 +472,6 @@ function closeModal() { document.getElementById('dup-modal').classList.remove('o
 // INIT
 // ═══════════════════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  loadCfg();
   renderRows();
   renderTable();
   loadHistory();
@@ -753,7 +635,7 @@ async function genMailto() {
   await recordSent(ord, email);
 
   if (full.length > 8000) {
-    toast('Body too long for direct mailto \u2014 use COPY BODY & OPEN EMAIL and paste for best results.');
+    toast('Body too long for direct mailto \u2014 use COPY BODY & OPEN EMAIL instead.');
     window.location.href = `mailto:${encodeURIComponent(email)}?subject=${subj}`;
     return;
   }
