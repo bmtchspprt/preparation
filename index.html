@@ -1,632 +1,909 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>BinMaster – Email Prep Tool</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BinMaster Prep Letter Generator</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Barlow+Condensed:wght@600;700;800&display=swap');
-
-:root {
-  --bg:      #0d1117;
-  --s1:      #161b22;
-  --s2:      #21262d;
-  --border:  #30363d;
-  --accent:  #e8a020;
-  --accent2: #f5c842;
-  --text:    #e6edf3;
-  --muted:   #8b949e;
-  --danger:  #f85149;
-  --success: #3fb950;
-  --info:    #58a6ff;
-  --r:       6px;
+:root{
+  --red      :#C8102E;
+  --red-dk   :#9B0E23;
+  --red-lt   :#FFF0F2;
+  --nav      :#1C1C1C;
+  --text     :#222222;
+  --text-m   :#5A6070;
+  --bg       :#F5F6F8;
+  --white    :#FFFFFF;
+  --border   :#D2D8E0;
+  --blue     :#0060A8;
+  --blue-lt  :#E8F2FB;
+  --green    :#1B6B2F;
+  --grn-lt   :#E8F5EC;
+  --gold     :#E8A000;
+  --r        :5px;
+  --sh       :0 2px 8px rgba(0,0,0,.11);
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;min-height:100vh;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-width:940px;}
 
-/* HEADER */
-header{background:var(--s1);border-bottom:2px solid var(--accent);padding:12px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;}
-.logo span{color:var(--text);}
-.logo-sub{font-size:11px;color:var(--muted);letter-spacing:.6px;margin-top:1px;}
+header{background:var(--white);border-bottom:4px solid var(--red);box-shadow:0 1px 6px rgba(0,0,0,.1);}
+.hdr{display:flex;align-items:center;gap:18px;padding:10px 22px;max-width:1520px;margin:0 auto;}
+.logo{flex-shrink:0;line-height:1;display:flex;flex-direction:column;gap:1px;}
+.logo-mark{font-size:32px;font-weight:900;font-style:italic;letter-spacing:-.5px;line-height:1;}
+.logo-mark .r{color:var(--red);}
+.logo-mark .k{color:var(--nav);}
+.logo-tag{font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:var(--text-m);font-weight:600;padding-left:2px;}
+.hdr-div{width:1px;height:52px;background:var(--border);}
+.hdr-text h1{font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text);}
+.hdr-text .sub{font-size:9px;text-transform:uppercase;letter-spacing:.9px;color:var(--text-m);margin-top:3px;}
 
-/* LAYOUT */
-.layout{max-width:1400px;margin:0 auto;padding:20px 18px 60px;display:grid;grid-template-columns:1fr 340px;gap:20px;}
+/* GitHub config bar */
+.cfg-bar{background:#FFFDF0;border-bottom:1px solid #E8D88A;padding:6px 22px;display:flex;align-items:center;gap:12px;font-size:11px;}
+.cfg-bar label{font-weight:700;color:var(--text-m);text-transform:uppercase;letter-spacing:.5px;font-size:10px;}
+.cfg-bar input{border:1.5px solid var(--border);border-radius:var(--r);padding:4px 9px;font-size:11px;color:var(--text);outline:none;background:var(--white);}
+.cfg-bar input:focus{border-color:var(--blue);}
+.cfg-bar input[type=password]{font-family:monospace;letter-spacing:2px;}
+.cfg-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:12px;font-weight:600;}
+.cfg-status.ok{background:var(--grn-lt);color:var(--green);}
+.cfg-status.err{background:var(--red-lt);color:var(--red);}
+.cfg-status.idle{background:#F0F2F5;color:var(--text-m);}
+.cfg-note{font-size:10px;color:var(--text-m);font-style:italic;}
 
-/* PANEL */
-.panel{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:18px;}
-.panel:last-child{margin-bottom:0;}
-.panel-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:10px;margin-bottom:14px;}
+.wrap{max-width:1520px;margin:0 auto;padding:13px;display:flex;flex-direction:column;gap:11px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
 
-/* FIELDS */
-.fields-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
-.fg{display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px;}
-.fg label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;}
-.fg input{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:8px 10px;font-family:'Barlow',sans-serif;font-size:14px;transition:border-color .15s;}
-.fg input:focus{outline:none;border-color:var(--accent);}
-.fg input.err{border-color:var(--danger);}
+.card{background:var(--white);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;}
+.card-hd{background:var(--nav);color:var(--white);padding:7px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.card-hd .note{font-size:9px;font-weight:400;color:#90A0B0;text-transform:none;letter-spacing:0;font-style:italic;}
+.card-bd{padding:13px;}
 
-/* PRODUCT BUTTONS */
-#btn-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
-.pb{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);padding:5px 10px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none;white-space:nowrap;}
-.pb:hover{border-color:var(--accent);color:var(--accent);}
-.pb.active{background:var(--accent);border-color:var(--accent);color:#000;}
+.field-row{display:flex;gap:10px;flex-wrap:wrap;}
+.fg{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
+.fg label{font-size:10px;font-weight:700;color:var(--text-m);text-transform:uppercase;letter-spacing:.5px;}
+.fg input{border:1.5px solid var(--border);border-radius:var(--r);padding:7px 10px;font-size:13px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s;}
+.fg input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,96,168,.15);}
 
-/* TABLE */
-.tbl-wrap{overflow-x:auto;margin-bottom:14px;max-height:420px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);}
-table{width:100%;border-collapse:collapse;font-size:12px;}
-thead th{background:var(--s2);border-bottom:1px solid var(--border);padding:8px 10px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);position:sticky;top:0;z-index:2;}
-tbody td{border-bottom:1px solid var(--border);padding:6px 8px;vertical-align:middle;}
-tbody tr{background:var(--bg);}
-tbody tr.sel{background:#1b2333;}
-tbody tr:hover{background:var(--s2);}
-tbody tr.sel:hover{background:#1f293f;}
-.td-name{font-weight:600;color:var(--text);white-space:nowrap;}
-.td-cat{font-size:11px;color:var(--muted);font-style:italic;white-space:nowrap;}
-.td-link a{color:var(--info);text-decoration:none;font-size:11px;word-break:break-all;}
-.td-link a:hover{text-decoration:underline;}
-.td-info input{background:transparent;border:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:12px;width:100%;min-width:140px;}
-.td-info input:focus{outline:none;}
-.td-check{text-align:center;}
-.td-check input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
+.btn-section{display:flex;flex-direction:column;gap:6px;}
+.row-hd{display:none;}
+.btn-grp{display:flex;flex-wrap:wrap;gap:6px;}
+.row-sep{border:none;border-top:1px solid var(--border);margin:2px 0;}
 
-/* ACTIONS */
-.action-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.btn-gen{background:var(--accent);border:none;border-radius:var(--r);color:#000;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;padding:10px 24px;cursor:pointer;text-transform:uppercase;transition:background .15s;}
-.btn-gen:hover{background:var(--accent2);}
-.btn-sec{background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--muted);font-family:'Barlow',sans-serif;font-size:12px;padding:8px 14px;cursor:pointer;transition:all .15s;}
-.btn-sec:hover{border-color:var(--danger);color:var(--danger);}
-.btn-sec.blue:hover{border-color:var(--info);color:var(--info);}
+.pb{padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--white);cursor:pointer;font-size:12px;font-weight:500;color:var(--text);transition:all .13s;display:inline-flex;align-items:center;white-space:nowrap;user-select:none;letter-spacing:.01px;}
+.pb:hover{border-color:var(--red);color:var(--red);background:var(--red-lt);}
+.pb.active{background:var(--red);color:var(--white);border-color:var(--red-dk);}
+.pb .ic{display:none;}
 
-/* PREVIEW */
-#preview{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:12px;font-size:11.5px;line-height:1.75;color:var(--muted);white-space:pre-wrap;min-height:70px;margin-bottom:10px;font-family:'Courier New',monospace;max-height:200px;overflow-y:auto;}
-#preview.has{color:var(--text);}
+.btn{padding:8px 15px;border-radius:var(--r);border:none;cursor:pointer;font-size:12px;font-weight:700;transition:all .13s;display:inline-flex;align-items:center;gap:6px;}
+.btn-red{background:var(--red);color:var(--white);}
+.btn-red:hover{background:var(--red-dk);}
+.btn-green{background:var(--green);color:var(--white);}
+.btn-green:hover{background:#145224;}
+.btn-dk{background:var(--nav);color:var(--white);}
+.btn-dk:hover{background:#333;}
+.btn-gray{background:var(--bg);color:var(--text-m);border:1px solid var(--border);}
+.btn-gray:hover{background:#E4E7EC;}
+.btn-sm{padding:5px 10px;font-size:10px;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;align-items:flex-start;}
 
-/* HISTORY */
-#hist-list{display:flex;flex-direction:column;gap:6px;max-height:520px;overflow-y:auto;}
-.hi{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:8px 11px;display:flex;flex-direction:column;gap:2px;}
-.hi-ord{font-weight:700;color:var(--accent);font-size:13px;}
-.hi-email{color:var(--text);font-size:12px;}
-.hi-prods{color:var(--muted);font-size:11px;font-style:italic;}
-.hi-date{color:var(--muted);font-size:10px;}
-.hi-empty{color:var(--muted);font-size:12px;font-style:italic;}
+.tw{position:relative;display:inline-block;}
+.tw .tip{display:none;position:absolute;bottom:110%;left:50%;transform:translateX(-50%);background:#1A1A2E;color:#fff;font-size:11px;padding:9px 13px;border-radius:var(--r);width:278px;z-index:300;line-height:1.55;text-align:left;font-weight:400;white-space:normal;pointer-events:none;box-shadow:0 4px 18px rgba(0,0,0,.3);}
+.tw:hover .tip{display:block;}
+.tw .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1A1A2E;}
 
-/* MODAL */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;}
-.overlay.open{display:flex;}
-.modal{background:var(--s1);border:1px solid var(--accent);border-radius:8px;padding:28px 30px;max-width:420px;width:90%;text-align:center;}
-.modal h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;color:var(--accent);margin-bottom:10px;letter-spacing:1px;}
-.modal p{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:18px;}
+#preview-box{background:#FAFBFF;border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;min-height:180px;font-family:'Segoe UI',Arial,sans-serif;font-size:12.5px;line-height:1.82;color:var(--text);}
+#preview-box a{color:var(--blue);text-decoration:underline;}
+.prev-meta{font-size:11px;color:var(--text-m);margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid var(--border);}
+.prev-meta b{color:var(--text);}
+.prev-empty{color:#A0AABB;font-style:italic;font-size:13px;text-align:center;padding:46px 10px;}
+.pt-line{font-style:italic;color:#444;}
+
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:11.5px;}
+th{background:var(--nav);color:var(--white);font-weight:700;text-align:left;padding:7px 10px;text-transform:uppercase;letter-spacing:.4px;font-size:10px;}
+td{padding:5px 10px;border-bottom:1px solid var(--border);vertical-align:top;}
+tr:nth-child(even) td{background:#FAFBFD;}
+tr:hover td{background:var(--blue-lt);}
+td[contenteditable=true]{outline:none;}
+td[contenteditable=true]:focus{background:var(--blue-lt);outline:1px solid var(--blue);}
+.td-prod{font-weight:700;white-space:nowrap;color:var(--nav);}
+.td-url{word-break:break-all;font-size:10px;color:var(--blue);}
+.td-info{color:var(--text-m);font-style:italic;font-size:10px;}
+.tbl-foot{padding:9px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:#FAFBFD;}
+
+.add-row-form{padding:10px 14px;border-top:2px dashed var(--border);background:#F9FAFB;display:flex;gap:7px;align-items:flex-end;flex-wrap:wrap;}
+.add-row-form .arf{display:flex;flex-direction:column;gap:3px;flex:1;min-width:90px;}
+.add-row-form .arf label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-m);}
+.add-row-form .arf input{border:1.5px solid var(--border);border-radius:var(--r);padding:6px 9px;font-size:12px;color:var(--text);outline:none;background:var(--white);}
+.add-row-form .arf input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,96,168,.13);}
+.add-row-form .arf input.protip-active{border-color:var(--gold);background:#FFFDF0;}
+.add-row-form .arf input:disabled{background:#F0F2F5;color:#AAA;cursor:not-allowed;}
+.add-row-form .type-toggle{display:flex;border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;flex-shrink:0;align-self:flex-end;margin-bottom:0;}
+.add-row-form .type-toggle button{padding:6px 10px;border:none;font-size:10px;font-weight:700;cursor:pointer;background:var(--white);color:var(--text-m);transition:all .13s;letter-spacing:.3px;}
+.add-row-form .type-toggle button.active-link{background:var(--blue);color:var(--white);}
+.add-row-form .type-toggle button.active-tip{background:var(--gold);color:#333;}
+.add-row-form .arf-label-note{font-size:8.5px;color:#A0AABB;font-style:italic;margin-top:1px;}
+
+.h-ord{font-weight:700;font-family:monospace;color:var(--nav);}
+.h-em{color:var(--blue);}
+.h-dt{color:var(--text-m);}
+.del-btn{background:none;border:none;color:#C0CAD8;cursor:pointer;font-size:16px;padding:1px 5px;border-radius:3px;line-height:1;}
+.del-btn:hover{color:var(--red);background:var(--red-lt);}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:10px;font-size:10px;font-weight:700;padding:0 6px;}
+.bdg-red{background:var(--red);color:var(--white);}
+
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;}
+.modal-ov.on{display:flex;}
+.modal{background:var(--white);border-radius:9px;padding:30px 32px;max-width:420px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.28);text-align:center;border-top:5px solid var(--red);}
+.modal-ico{font-size:40px;margin-bottom:12px;}
+.modal h2{font-size:17px;color:var(--red);margin-bottom:10px;font-weight:800;}
+.modal p{font-size:12.5px;color:var(--text-m);line-height:1.65;margin-bottom:22px;}
 .modal-btns{display:flex;gap:10px;justify-content:center;}
-.modal-btns button{padding:8px 20px;border-radius:var(--r);font-family:'Barlow',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;}
-.btn-cancel{background:var(--s2);color:var(--muted);}
-.btn-cancel:hover{color:var(--text);}
-.btn-proceed{background:var(--accent);color:#000;}
-.btn-proceed:hover{background:var(--accent2);}
 
-/* TOAST */
-.toast{position:fixed;bottom:22px;right:22px;background:var(--success);color:#000;font-weight:700;font-size:13px;padding:10px 18px;border-radius:var(--r);display:none;z-index:200;}
-.toast.show{display:block;}
-
-/* SCROLLBAR */
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+#toast{position:fixed;bottom:22px;right:22px;background:var(--nav);color:var(--white);padding:11px 20px;border-radius:var(--r);font-size:12px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:2000;max-width:360px;line-height:1.45;border-left:4px solid var(--red);}
+#toast.on{opacity:1;}
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <div class="logo">BinMaster <span>Email Prep</span></div>
-    <div class="logo-sub">Customer Resource Email Generator</div>
+  <div class="hdr">
+    <div class="logo">
+      <div class="logo-mark"><span class="r">Bin</span><span class="k">Master</span></div>
+      <div class="logo-tag">Level Measurement</div>
+    </div>
+    <div class="hdr-div"></div>
+    <div class="hdr-text">
+      <h1>BinMaster Prep Letter Generator</h1>
+      <div class="sub">Technical Support &mdash; Email Automation Tool</div>
+    </div>
   </div>
 </header>
 
-<div class="layout">
+<!-- ── GITHUB CONFIG BAR ─────────────────────────────────────────────────── -->
+<div class="cfg-bar">
+  <label>GitHub</label>
+  <div style="display:flex;flex-direction:column;gap:2px;">
+    <input type="text" id="cfg-owner" placeholder="owner (e.g. binmaster)" style="width:160px;" oninput="saveCfg()">
+    <span style="font-size:9px;color:#999;">Owner / Org</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:2px;">
+    <input type="text" id="cfg-repo" placeholder="repo (e.g. prep-tool)" style="width:160px;" oninput="saveCfg()">
+    <span style="font-size:9px;color:#999;">Repository</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:2px;">
+    <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx" style="width:220px;" oninput="saveCfg()">
+    <span style="font-size:9px;color:#999;">Fine-grained token (contents: read &amp; write)</span>
+  </div>
+  <button class="btn btn-gray btn-sm" onclick="testGitHub()">&#128279; Test</button>
+  <span id="cfg-status" class="cfg-status idle">&#9679; Not configured</span>
+  <span class="cfg-note">Settings saved to this browser only</span>
+</div>
 
-  <!-- LEFT COLUMN -->
-  <div>
+<div class="wrap">
 
-    <div class="panel">
-      <div class="panel-title">Email Details</div>
-      <div class="fields-row">
+  <div class="card">
+    <div class="card-hd">&#128100; Recipient Information</div>
+    <div class="card-bd">
+      <div class="field-row">
         <div class="fg">
           <label>ORD Number</label>
-          <input type="text" id="ord" placeholder="e.g. 12345" autocomplete="off"/>
+          <input type="text" id="f-ord" placeholder="e.g. ORD-12345" oninput="onOrdInput()">
         </div>
         <div class="fg">
-          <label>Recipient Email</label>
-          <input type="email" id="email" placeholder="customer@example.com" autocomplete="off"/>
+          <label>Email Address</label>
+          <input type="email" id="f-email" placeholder="customer@example.com" autocomplete="email" oninput="autoPreview()">
+        </div>
+        <div class="fg">
+          <label>Name</label>
+          <input type="text" id="f-name" placeholder="First name" autocomplete="given-name" oninput="autoPreview()">
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="panel">
-      <div class="panel-title">Quick Select Products <span style="color:var(--muted);font-weight:400;font-size:11px">(click to toggle)</span></div>
-      <div id="btn-grid"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn-sec blue" onclick="selectAll()">Select All</button>
-        <button class="btn-sec" onclick="clearSel()">Clear Selection</button>
+  <div class="card">
+    <div class="card-hd">&#128230; Select Products</div>
+    <div class="card-bd">
+      <div class="btn-section" id="btn-section"></div>
+      <div class="btn-row" style="margin-top:9px;">
+        <button class="btn btn-gray btn-sm" onclick="clearSel()">&#10005; Clear Selection</button>
       </div>
     </div>
+  </div>
 
-    <div class="panel">
-      <div class="panel-title">Product Table <span style="color:var(--muted);font-weight:400;font-size:11px">(editable · Info column is free-form)</span></div>
+  <div class="card">
+    <div class="card-hd">&#128065; Email Preview &amp; Generate</div>
+    <div class="card-bd">
+      <div id="preview-box">
+        <div class="prev-empty">Fill in recipient info and select products &mdash; preview updates automatically.</div>
+      </div>
+      <div class="btn-row">
+        <div class="tw">
+          <button class="btn btn-green" onclick="copyBodyOpen()">&#128203;&nbsp;COPY BODY &amp; OPEN EMAIL</button>
+          <div class="tip"><strong>How it works:</strong> Copies the formatted email body to clipboard and opens your mail client. Just paste (Ctrl+V) into the body.</div>
+        </div>
+        <div class="tw">
+          <button class="btn btn-dk" onclick="genMailto()">&#128231;&nbsp;GENERATE &amp; OPEN IN MAIL</button>
+          <div class="tip">Opens your mail client with subject and recipient pre-filled. Body will be plain text. For formatted hyperlinks, use COPY BODY &amp; OPEN EMAIL.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <div class="card">
+      <div class="card-hd">
+        &#128230; Product Links
+        <span class="note">&nbsp;(edit product.json to make permanent changes)</span>
+      </div>
       <div class="tbl-wrap">
-        <table id="prod-table">
+        <table>
           <thead>
             <tr>
-              <th style="width:30px">&#10003;</th>
-              <th>Product Name</th>
-              <th>Category</th>
-              <th>Link</th>
-              <th style="min-width:180px">Info</th>
+              <th style="width:14%">Product</th>
+              <th style="width:33%">Link Text</th>
+              <th style="width:43%">URL</th>
+              <th style="width:10%">Info</th>
             </tr>
           </thead>
-          <tbody id="tbl-body"></tbody>
+          <tbody id="prod-tbody"></tbody>
         </table>
       </div>
+      <div class="add-row-form" id="add-row-form">
+        <div style="display:flex;flex-direction:column;gap:3px;flex-shrink:0;">
+          <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-m);">Type</span>
+          <div class="type-toggle">
+            <button id="tog-link" class="active-link" onclick="setAddType('link')">&#128279; Link</button>
+            <button id="tog-tip"  onclick="setAddType('tip')">&#128161; Protip</button>
+          </div>
+        </div>
+        <div class="arf" style="max-width:130px;">
+          <label>Product</label>
+          <input type="text" id="ar-prod" placeholder="e.g. NCR">
+        </div>
+        <div class="arf" style="flex:2;">
+          <label id="ar-name-label">Link Text / Name</label>
+          <input type="text" id="ar-name" placeholder="e.g. NCR Quick Start Guide">
+          <div class="arf-label-note" id="ar-name-note">For a Protip, enter the full tip text here</div>
+        </div>
+        <div class="arf" style="flex:2;" id="ar-url-wrap">
+          <label>URL <span style="font-weight:400;color:#A0AABB;">(leave blank for Protip)</span></label>
+          <input type="text" id="ar-url" placeholder="https://...">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:3px;justify-content:flex-end;">
+          <button class="btn btn-red btn-sm" style="white-space:nowrap;height:31px;" onclick="addTableRow()">&#43; Add Row</button>
+        </div>
+      </div>
+      <div class="tbl-foot">
+        <button class="btn btn-gray btn-sm" onclick="exportJSON()">&#11015;&nbsp;Export product.json</button>
+      </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-title">Email Preview</div>
-      <div id="preview">Select products and fill in the fields above, then click Generate.</div>
-      <div class="action-row">
-        <button class="btn-gen" onclick="generate()">&#9889; Generate &amp; Open Email</button>
-        <button class="btn-sec blue" onclick="updatePreview()">Preview</button>
-        <button class="btn-sec" onclick="clearAll()">Clear All</button>
+    <!-- Sent history -->
+    <div class="card">
+      <div class="card-hd">
+        &#128203; Sent Email History
+        <span style="font-size:9px;font-weight:400;color:#90A0B0;text-transform:none;letter-spacing:0;font-style:italic;" id="hist-source-note">&nbsp;(localStorage fallback)</span>
+        <span id="h-count" class="badge bdg-red" style="margin-left:auto;">0</span>
+      </div>
+      <div class="tbl-wrap">
+        <table id="hist-table">
+          <thead>
+            <tr>
+              <th>ORD Number</th>
+              <th>Email</th>
+              <th>Date Sent</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="hist-tbody">
+            <tr><td colspan="4" style="text-align:center;color:#A0AABB;padding:20px;">Loading history&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl-foot">
+        <button class="btn btn-gray btn-sm" onclick="clearHist()">&#128465;&nbsp;Clear All History</button>
+        <button class="btn btn-gray btn-sm" onclick="loadHistory()">&#8635;&nbsp;Refresh</button>
       </div>
     </div>
 
   </div>
-
-  <!-- RIGHT COLUMN -->
-  <div>
-    <div class="panel">
-      <div class="panel-title">Sent History</div>
-      <div id="hist-list"><div class="hi-empty">No emails sent yet.</div></div>
-      <div style="margin-top:10px;display:flex;gap:8px;">
-        <button class="btn-sec" onclick="clearHistory()">Clear History</button>
-        <button class="btn-sec blue" onclick="exportHistory()">Export CSV</button>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-<!-- DUPLICATE ORD MODAL -->
-<div class="overlay" id="dup-overlay">
+<div class="modal-ov" id="dup-modal">
   <div class="modal">
-    <h3>&#9888; ORD Already Sent</h3>
-    <p id="dup-msg">This ORD number has already been sent. Do you want to send it again?</p>
+    <div class="modal-ico">&#9888;&#65039;</div>
+    <h2>ORD Number Already Sent</h2>
+    <p id="dup-msg">This ORD Number was previously sent.</p>
     <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-proceed" onclick="proceedAnyway()">Send Anyway</button>
+      <button class="btn btn-gray" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-red" onclick="closeModal()">OK &mdash; Understood</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast">Email client opened!</div>
+<div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════
-//  PRODUCT DATA  (extracted from BinMaster xlsx)
-// ══════════════════════════════════════════════
-const PRODUCTS = [
-  {name:"3D Level Scanner",             cat:"3D Scanner",           url:"",                                                                                      info:""},
-  {name:"3D LevelScanner Multi-Scanner",cat:"Software",             url:"",                                                                                      info:""},
-  {name:"3D MultiVision Software Manual",cat:"Software",            url:"https://support.binmaster.com/kb/view/7d8bee17-d629-4075-a18b-7e0725f4b52a",            info:""},
-  {name:"A-Frame Load Cell",            cat:"Weight",               url:"",                                                                                      info:""},
-  {name:"AEH-100/200",                  cat:"Network Devices",      url:"https://support.binmaster.com/kb/view/d173cef9-94a1-42ce-b043-2e297a195134",            info:""},
-  {name:"Air Pads",                     cat:"Aeration/Flow",        url:"https://support.binmaster.com/kb/view/b5fefb58-7dd4-463b-9f32-3adaa07b5d3b",            info:""},
-  {name:"Airbrator",                    cat:"Aeration/Flow",        url:"https://support.binmaster.com/kb/view/b5fefb58-7dd4-463b-9f32-3adaa07b5d3b",            info:""},
-  {name:"BinCloud",                     cat:"Software",             url:"https://support-genie--davezelnio.replit.app/kb/view/d65c70fd-45a6-4720-9db6-de9f61348bae",info:""},
-  {name:"BinCloud Gateway",             cat:"Network Devices",      url:"",                                                                                      info:""},
-  {name:"BinDisc Setup Wizard",         cat:"Non-contact Radar",    url:"https://bmtchspprt.github.io/radar-setup/bindisc.html",                                 info:""},
-  {name:"Binventory/Ebob",              cat:"Software",             url:"https://support.binmaster.com/kb/view/5d310bc3-e081-4124-a491-57b62a079870",            info:""},
-  {name:"BM-25",                        cat:"Diaphragm Switch",     url:"",                                                                                      info:""},
-  {name:"BM-45",                        cat:"Diaphragm Switch",     url:"",                                                                                      info:""},
-  {name:"BM-65",                        cat:"Diaphragm Switch",     url:"",                                                                                      info:""},
-  {name:"BM-T",                         cat:"Tilt Switch",          url:"",                                                                                      info:""},
-  {name:"BM-TSM",                       cat:"Tilt Switch",          url:"",                                                                                      info:""},
-  {name:"BMRX-100",                     cat:"Rotary",               url:"",                                                                                      info:""},
-  {name:"BMRX-200",                     cat:"Rotary",               url:"",                                                                                      info:""},
-  {name:"BMRX-300",                     cat:"Rotary",               url:"",                                                                                      info:""},
-  {name:"C-100",                        cat:"Display",              url:"",                                                                                      info:""},
-  {name:"C-50",                         cat:"Display",              url:"",                                                                                      info:""},
-  {name:"Canister Load Cell",           cat:"Weight",               url:"",                                                                                      info:""},
-  {name:"CNCR",                         cat:"Non-contact Radar",    url:"https://support.binmaster.com/kb/view/d71297d9-77ac-49f8-97a4-6d183bf3adbc",            info:""},
-  {name:"CNCR-110",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"CNCR-120",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"CNCR-130",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"CNCR-190",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"CNCR-210",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"CNCR-220",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"CNCR-230",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"CNCR-320",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"CNCR-390",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"CNCR-400",                     cat:"Non-contact Radar",    url:"",                                                                                      info:""},
-  {name:"Compact (Cap.)",               cat:"Capacitance Probes",   url:"",                                                                                      info:""},
-  {name:"Compact (Vib.)",               cat:"Vibrating Probes",     url:"",                                                                                      info:""},
-  {name:"Downloads/Drivers/Software",   cat:"General",              url:"https://support.binmaster.com/kb/view/cecac1da-e4ab-4ac1-a511-9672176f3dd6",            info:""},
-  {name:"DPM-100",                      cat:"Display",              url:"",                                                                                      info:""},
-  {name:"DPM-100 Modbus",               cat:"Display",              url:"https://binmaster.com/amfile/file/download/file/1049/product/4799/",                    info:""},
-  {name:"DPM-200",                      cat:"Display",              url:"",                                                                                      info:""},
-  {name:"DPM-300",                      cat:"Display",              url:"",                                                                                      info:""},
-  {name:"DPM-400",                      cat:"Display",              url:"",                                                                                      info:""},
-  {name:"DPM-500",                      cat:"Display",              url:"",                                                                                      info:""},
-  {name:"Extended",                     cat:"Vibrating Probes",     url:"",                                                                                      info:""},
-  {name:"Flow Detect 2000",             cat:"Aeration/Flow",        url:"https://binmaster.com/amfile/file/download/file/1151/product/4230/",                    info:""},
-  {name:"FVL-200",                      cat:"Laser",                url:"https://binmaster.com/amfile/file/download/file/1266/product/4263/",                    info:""},
-  {name:"GWR-2000",                     cat:"Guided Wave Radar",    url:"",                                                                                      info:""},
-  {name:"GWR-3000",                     cat:"Guided Wave Radar",    url:"",                                                                                      info:""},
-  {name:"HCM-100",                      cat:"Network Devices",      url:"https://support.binmaster.com/kb/view/7f8bdc4e-48a6-4ed4-b773-cc6a858c3b05",            info:""},
-  {name:"LL-100",                       cat:"Laser",                url:"https://www.binmaster.com/amfile/file/download/file/1172/product/4238/",                info:""},
-  {name:"LTR-100",                      cat:"Network Devices",      url:"https://support.binmaster.com/kb/view/d33f37bb-9332-420a-869f-8f30113caf49",            info:""},
-  {name:"Maxima +",                     cat:"Rotary",               url:"",                                                                                      info:""},
-  {name:"Mini Rotary",                  cat:"Rotary",               url:"",                                                                                      info:""},
-  {name:"NCR",                          cat:"Non-contact Radar",    url:"https://support.binmaster.com/kb/view/bc8e6a67-a401-4bc6-aa83-3423a0282860",            info:""},
-  {name:"NCR-80",                       cat:"Non-contact Radar",    url:"https://binmaster.com/amfile/file/download/file/1195/product/4274/",                    info:""},
-  {name:"NCR-86",                       cat:"Non-contact Radar",    url:"https://binmaster.com/amfile/file/download/file/1045/product/4700/",                    info:""},
-  {name:"Pancake Load Cell",            cat:"Weight",               url:"",                                                                                      info:""},
-  {name:"Plugged Chute Detector",       cat:"Diaphragm Switch",     url:"",                                                                                      info:""},
-  {name:"Preparing to Install",         cat:"General",              url:"https://support.binmaster.com/kb/view/3727b4b2-80fb-48b0-82a6-8f93994392a1",            info:""},
-  {name:"Pro Cap",                      cat:"Capacitance Probes",   url:"",                                                                                      info:""},
-  {name:"SmartBob",                     cat:"SmartBob",             url:"https://support.binmaster.com/kb/view/1e1c4133-1be5-46fe-90b6-7c7a4111e7f0",            info:""},
-  {name:"SmartBob AO",                  cat:"SmartBob",             url:"",                                                                                      info:""},
-  {name:"SmartBob II",                  cat:"SmartBob",             url:"",                                                                                      info:""},
-  {name:"SPL-200",                      cat:"Laser",                url:"https://binmaster.com/amfile/file/download/file/1266/product/4263/",                    info:""},
-  {name:"Standard",                     cat:"Vibrating Probes",     url:"",                                                                                      info:""},
-  {name:"TC-100",                       cat:"Network Devices",      url:"https://support.binmaster.com/kb/view/e8e8f1c6-6635-4f2d-9798-528b2df6d3e9",            info:""},
-  {name:"TS-100",                       cat:"Ultrasonic",           url:"https://support.binmaster.com/kb/view/ad65d8bc-ee56-47d5-9354-086c7cf0ae21",            info:""},
-  {name:"TS-200",                       cat:"Ultrasonic",           url:"https://support.binmaster.com/kb/view/aaa5f679-d2ed-4e3b-b912-58bd4c975ee9",            info:""},
-  {name:"Wireless Transceivers",        cat:"Network Devices",      url:"",                                                                                      info:""},
+// ═══════════════════════════════════════════════════════════════════════════
+// PRODUCT DATA
+// ═══════════════════════════════════════════════════════════════════════════
+const RAW = [
+  {product:"NCR",              name:"NCR: BinDisc Setup Guide",                     url:"https://bmtchspprt.github.io/radar-setup/bindisc.html"},
+  {product:"NCR",              name:"NCR Manual",                                    url:"https://support.binmaster.com/kb/view/bc8e6a67-a401-4bc6-aa83-3423a0282860"},
+  {product:"NCR",              name:"NCR Wiring",                                    url:"https://support.binmaster.com/kb/view/a5d3b4e0-a336-43f4-94f4-962eeef7d7af"},
+  {product:"NCR",              name:"NCR-86 Material Calibration Video",             url:"https://support.binmaster.com/kb/view/902c7769-9671-45ab-a52c-6ada011925ec"},
+  {product:"CNCR",             name:"CNCR Manual",                                   url:"https://support.binmaster.com/kb/view/d71297d9-77ac-49f8-97a4-6d183bf3adbc"},
+  {product:"CNCR",             name:"CNCR Wiring",                                   url:"https://support.binmaster.com/kb/view/9ab4c1b8-9795-4e4a-90a7-192da74a5729"},
+  {product:"CNCR",             name:"CNCR: Bluetooth Setup Guide",                   url:"https://support.binmaster.com/kb/view/a0e315ac-84e8-49a7-823e-b263d44a3017"},
+  {product:"SmartBob",         name:"SmartBob Manual",                               url:"https://support.binmaster.com/kb/view/c63c227b-5e08-4171-8c7f-58a804e3f06a"},
+  {product:"SmartBob",         name:"SmartBob Wiring",                               url:"https://support.binmaster.com/kb/view/3ae8f673-3dfd-466f-b9fd-2e814996426a"},
+  {product:"Senix",            name:"Senix Toughsonic Manual",                       url:"https://support.binmaster.com/kb/view/376df1e4-4906-4f01-b9e6-c4e8e0943da0"},
+  {product:"Senix",            name:"Senix Videos",                                  url:"https://support.binmaster.com/kb/view/92f66ca8-5cfd-4ad5-ba42-8bd67a5406db"},
+  {product:"3D",               name:"3D Manual",                                     url:"https://support.binmaster.com/kb/view/7d8bee17-d629-4075-a18b-7e0725f4b52a"},
+  {product:"3D",               name:"3D Wiring",                                     url:"https://support.binmaster.com/kb/view/70cbec26-fa02-4934-a95c-593cf5092229"},
+  {product:"3D",               name:"3D extension installation: videos and manuals", url:"https://support.binmaster.com/kb/view/70cbec26-fa02-4934-a95c-593cf5092229"},
+  {product:"3D",               name:"3D Downloads",                                  url:"https://support.binmaster.com/kb/view/bb6f64b8-6c24-4077-b93e-48cf8ec60767"},
+  {product:"GWR",              name:"Guided Wave Radar Manuals",                     url:"https://support.binmaster.com/kb/view/e29fbc11-0526-4ff9-9c76-da324a5a9ca3"},
+  {product:"GWR",              name:"Guided Wave Radar Wiring",                      url:"https://support.binmaster.com/kb/view/baa0c650-0575-4b4f-a0dc-86911ca25a66"},
+  {product:"Gateway",          name:"Form Vessel Setup",                             url:"https://support.binmaster.com/kb/view/d65c70fd-45a6-4720-9db6-de9f61348bae"},
+  {product:"Gateway",          name:"Firewall Details",                              url:"https://support.binmaster.com/kb/view/6eba9a1b-a15f-4ef6-b96b-c50478438d5d"},
+  {product:"LTX",              name:"Contact technicalsupport@binmaster.com",        url:"mailto:technicalsupport@binmaster.com"},
+  {product:"C100",             name:"C-100 Manual",                                  url:"https://support.binmaster.com/kb/view/811e6e4d-81ec-4906-be46-981773c71a69"},
+  {product:"C100",             name:"C-100 Setup Guide",                             url:"https://binmastercody.github.io/c100/"},
+  {product:"C-50",             name:"C-50 Manual",                                   url:"https://binmaster.com/amfile/file/download/file/1253/product/4260/"},
+  {product:"LTR-100",          name:"LTR-100 Manual",                                url:"https://support.binmaster.com/kb/view/d33f37bb-9332-420a-869f-8f30113caf49"},
+  {product:"LTR-100",          name:"LTR Addressing",                                url:"https://support.binmaster.com/kb/view/7201c8aa-0bb0-480d-9400-1c12389dcdbc"},
+  {product:"DPM",              name:"DPM Manual",                                    url:"https://support.binmaster.com/kb/view/717dead8-a1c3-4518-8238-857ecac445e3"},
+  {product:"DPM",              name:"DPM-100 Modbus Quick Start Guide",              url:"https://binmaster.com/amfile/file/download/file/1049/product/4799/"},
+  {product:"Capacitance Probe",name:"Capacitance Probe Manual",                      url:"https://support.binmaster.com/kb/view/4895275b-1f7c-4b28-8fec-925faa017f46"},
+  {product:"Capacitance Probe",name:"Procap Probe Adjustments Video",                url:"https://support.binmaster.com/kb/view/c67bbd67-e00b-46ef-9f72-38a83856a103"},
+  {product:"Rotary",           name:"BMRX Rotary Manual",                            url:"https://support.binmaster.com/kb/view/66e6b142-438c-4f2f-85c2-bda53cba000f"},
+  {product:"Rotary",           name:"Rotary Wiring",                                 url:"https://support.binmaster.com/kb/view/809dda8f-1de8-44ae-af07-fe2865c03113"},
+  {product:"Vibrating Probe",  name:"Vibrating Rod Manual",                          url:"https://support.binmaster.com/kb/view/bd8af8e0-e43b-4771-bd52-52b8748f7c96"},
+  {product:"Diaphragm",        name:"Diaphragm Switch Manual",                       url:"https://support.binmaster.com/kb/view/9cf52a34-53ce-469c-8d0f-adffd00ab0c4"},
+  {product:"Tilt Switch",      name:"Tilt Switch Manual",                            url:"https://support.binmaster.com/kb/view/b9b5eac2-8ab5-4379-91cb-d753cc51927a"},
+  {product:"BinCloud",         name:"BinCloud \u2014 contact technicalsupport@binmaster.com", url:"mailto:technicalsupport@binmaster.com"},
+  {product:"Binventory",       name:"Binventory Install, Upgrade, Move",             url:"https://support.binmaster.com/kb/view/5d310bc3-e081-4124-a491-57b62a079870"},
+  {product:"FD-2000",          name:"Flow Detect Manual",                            url:"https://binmaster.com/amfile/file/download/file/1151/product/4230/"},
+  {product:"Airbrator",        name:"Airpad, Airbrator Manuals",                     url:"https://support.binmaster.com/kb/view/b5fefb58-7dd4-463b-9f32-3adaa07b5d3b"}
 ];
-// Already alphabetically sorted above
 
-// ══════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════
-const selected = new Set();
+const PROTIPS = {
+  "CNCR"    : ["Keep the yellow sheet and do your setup before installing. Trying to Bluetooth after installation can be tough as signals get lost inside of vessels."],
+  "NCR"     : ["Water and radars do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check."],
+  "3D"      : ["Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check."],
+  "SmartBob": ["Water and sensors do not mix. Check your seals. Anticipate water intrusion from conduits. Ask your installer to double check."]
+};
 
-function getHistory(){
-  try{ return JSON.parse(localStorage.getItem('bm_history')||'[]'); }
-  catch(e){ return []; }
+const ROW1 = ["NCR","CNCR","3D","SmartBob","Senix","GWR"];
+const ROW2 = ["Gateway","LTX","C100","C-50","LTR-100","DPM"];
+const ROW3_FIXED = ["Capacitance Probe","Rotary","Vibrating Probe","Diaphragm","Tilt Switch","FD-2000","Airbrator"];
+const ROW4 = ["BinCloud","Binventory"];
+const ALL_PRODS = [...new Set(RAW.map(r => r.product))];
+const FIXED = new Set([...ROW1, ...ROW2, ...ROW3_FIXED, ...ROW4]);
+const ROW3_EXTRA = ALL_PRODS.filter(p => !FIXED.has(p)).sort((a,b) => a.localeCompare(b));
+const ROW3 = [...ROW3_FIXED.filter(p => ALL_PRODS.includes(p)), ...ROW3_EXTRA];
+const ROWS = [
+  {label:"Radar / Sonic / Wave Sensors",  prods: ROW1},
+  {label:"Controllers & Displays",        prods: ROW2},
+  {label:"Point Level & Accessories",     prods: ROW3},
+  {label:"Software & Cloud",              prods: ROW4}
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let selected    = new Set();
+let sentHistory = [];
+let _ghFileSha  = null;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GITHUB CONFIG
+// ═══════════════════════════════════════════════════════════════════════════
+const CFG_KEY = 'bm_gh_cfg';
+
+function loadCfg() {
+  try {
+    const c = JSON.parse(localStorage.getItem(CFG_KEY) || '{}');
+    if (c.owner) document.getElementById('cfg-owner').value = c.owner;
+    if (c.repo)  document.getElementById('cfg-repo').value  = c.repo;
+    if (c.token) document.getElementById('cfg-token').value = c.token;
+  } catch(e) {}
 }
-function saveHistory(h){ localStorage.setItem('bm_history',JSON.stringify(h)); }
 
-// ══════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',function(){
-  buildButtons();
-  buildTable();
-  renderHistory();
-  document.getElementById('ord').addEventListener('input',updatePreview);
-  document.getElementById('email').addEventListener('input',updatePreview);
-});
-
-function buildButtons(){
-  const grid = document.getElementById('btn-grid');
-  grid.innerHTML = '';
-  PRODUCTS.forEach(function(p,i){
-    const btn = document.createElement('button');
-    btn.className = 'pb';
-    btn.textContent = p.name;
-    btn.dataset.idx = i;
-    btn.addEventListener('click',function(){ toggleProduct(i,btn); });
-    grid.appendChild(btn);
-  });
+function saveCfg() {
+  const cfg = { owner: cfgVal('cfg-owner'), repo: cfgVal('cfg-repo'), token: cfgVal('cfg-token') };
+  try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch(e) {}
 }
 
-function buildTable(){
-  const tbody = document.getElementById('tbl-body');
-  tbody.innerHTML = '';
-  PRODUCTS.forEach(function(p,i){
-    const tr = document.createElement('tr');
-    tr.id = 'row-'+i;
+function getCfg() {
+  return { owner: cfgVal('cfg-owner'), repo: cfgVal('cfg-repo'), token: cfgVal('cfg-token') };
+}
 
-    // checkbox cell
-    const tdCk = document.createElement('td');
-    tdCk.className = 'td-check';
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.dataset.idx = i;
-    cb.addEventListener('change',function(){ toggleFromTable(i,cb); });
-    tdCk.appendChild(cb);
+function cfgVal(id) { return document.getElementById(id).value.trim(); }
 
-    // name cell
-    const tdNm = document.createElement('td');
-    tdNm.className = 'td-name';
-    tdNm.textContent = p.name;
+function ghReady() {
+  const c = getCfg();
+  return c.owner && c.repo && c.token;
+}
 
-    // category cell
-    const tdCt = document.createElement('td');
-    tdCt.className = 'td-cat';
-    tdCt.textContent = p.cat;
+function ghApiUrl() {
+  const c = getCfg();
+  return `https://api.github.com/repos/${c.owner}/${c.repo}/contents/history/sent.json`;
+}
 
-    // link cell
-    const tdLk = document.createElement('td');
-    tdLk.className = 'td-link';
-    if(p.url){
-      const a = document.createElement('a');
-      a.href = p.url;
-      a.target = '_blank';
-      a.title = p.url;
-      const short = p.url.replace(/^https?:\/\//,'');
-      a.textContent = short.length > 55 ? short.substring(0,55)+'…' : short;
-      tdLk.appendChild(a);
+function ghHeaders() {
+  return { 'Authorization': `Bearer ${getCfg().token}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' };
+}
+
+function setStatus(state, msg) {
+  const el = document.getElementById('cfg-status');
+  el.className = `cfg-status ${state}`;
+  el.textContent = msg;
+}
+
+async function testGitHub() {
+  if (!ghReady()) { setStatus('err','⚠ Fill all fields'); return; }
+  setStatus('idle','⏳ Testing…');
+  try {
+    const r = await fetch(ghApiUrl(), { headers: ghHeaders() });
+    if (r.status === 200 || r.status === 404) {
+      setStatus('ok','✓ Connected');
+      toast('✓ GitHub connection OK. Loading history…');
+      await loadHistory();
     } else {
-      tdLk.innerHTML = '<span style="color:var(--muted);font-style:italic">—</span>';
+      const d = await r.json().catch(()=>({}));
+      setStatus('err',`✗ ${r.status}`);
+      toast(`GitHub error ${r.status}: ${d.message||'check token/repo'}`);
     }
+  } catch(e) {
+    setStatus('err','✗ Network error');
+    toast('Network error — check owner/repo spelling and token.');
+  }
+}
 
-    // info cell
-    const tdIn = document.createElement('td');
-    tdIn.className = 'td-info';
-    const inp = document.createElement('input');
-    inp.type = 'text';
-    inp.placeholder = 'Optional notes…';
-    inp.dataset.idx = i;
-    inp.addEventListener('input',function(){ PRODUCTS[i].info = inp.value; updatePreview(); });
-    tdIn.appendChild(inp);
+// ═══════════════════════════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadHistory() {
+  if (!ghReady()) {
+    try { sentHistory = JSON.parse(localStorage.getItem('bm_hist') || '[]'); } catch(e) { sentHistory = []; }
+    document.getElementById('hist-source-note').textContent = ' (localStorage — configure GitHub above for shared history)';
+    renderHist();
+    return;
+  }
 
-    tr.appendChild(tdCk);
-    tr.appendChild(tdNm);
-    tr.appendChild(tdCt);
-    tr.appendChild(tdLk);
-    tr.appendChild(tdIn);
+  try {
+    const r = await fetch(ghApiUrl(), { headers: ghHeaders() });
+    if (r.status === 404) {
+      sentHistory = [];
+      _ghFileSha  = null;
+      document.getElementById('hist-source-note').textContent = ' (GitHub — history/sent.json, new file)';
+      renderHist();
+      return;
+    }
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    _ghFileSha  = data.sha;
+    const decoded = atob(data.content.replace(/\n/g,''));
+    sentHistory = JSON.parse(decoded);
+    document.getElementById('hist-source-note').textContent = ' (GitHub — history/sent.json)';
+    setStatus('ok','✓ Connected');
+  } catch(e) {
+    toast(`Could not load history from GitHub: ${e.message}`);
+    try { sentHistory = JSON.parse(localStorage.getItem('bm_hist') || '[]'); } catch(e2) { sentHistory = []; }
+    document.getElementById('hist-source-note').textContent = ' (localStorage fallback — GitHub read failed)';
+  }
+  renderHist();
+}
+
+async function saveHistory() {
+  try { localStorage.setItem('bm_hist', JSON.stringify(sentHistory)); } catch(e) {}
+
+  if (!ghReady()) return;
+
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(sentHistory, null, 2))));
+  const body = { message: `Update sent history (${new Date().toISOString()})`, content };
+  if (_ghFileSha) body.sha = _ghFileSha;
+
+  try {
+    const r = await fetch(ghApiUrl(), { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+    if (!r.ok) {
+      const d = await r.json().catch(()=>({}));
+      toast(`⚠ History saved locally but GitHub write failed: ${d.message || r.status}`);
+      return;
+    }
+    const data = await r.json();
+    _ghFileSha = data.content.sha;
+  } catch(e) {
+    toast(`⚠ GitHub write error: ${e.message}. History saved locally.`);
+  }
+}
+
+async function recordSent(ord, email) {
+  if (!ord && !email) return;
+  const exists = sentHistory.some(h => h.ord.toLowerCase() === (ord||'').toLowerCase());
+  if (exists) return;
+  const date = new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+  sentHistory.push({ord: ord||'—', email: email||'—', date});
+  renderHist();
+  await saveHistory();
+}
+
+function renderHist() {
+  document.getElementById('h-count').textContent = sentHistory.length;
+  const tbody = document.getElementById('hist-tbody');
+  if (!sentHistory.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#A0AABB;padding:20px;">No emails sent yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '';
+  [...sentHistory].reverse().forEach((item, ri) => {
+    const i = sentHistory.length - 1 - ri;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td class="h-ord">${esc(item.ord)}</td>`+
+      `<td class="h-em">${esc(item.email)}</td>`+
+      `<td class="h-dt">${esc(item.date)}</td>`+
+      `<td><button class="del-btn" onclick="delHist(${i})" title="Remove">&times;</button></td>`;
     tbody.appendChild(tr);
   });
 }
 
-// ══════════════════════════════════════════════
-//  SELECTION
-// ══════════════════════════════════════════════
-function toggleProduct(idx,btn){
-  if(selected.has(idx)){
-    selected.delete(idx);
-    btn.classList.remove('active');
-    const cb = document.querySelector('#row-'+idx+' input[type=checkbox]');
-    if(cb) cb.checked = false;
-    document.getElementById('row-'+idx).classList.remove('sel');
-  } else {
-    selected.add(idx);
-    btn.classList.add('active');
-    const cb = document.querySelector('#row-'+idx+' input[type=checkbox]');
-    if(cb) cb.checked = true;
-    document.getElementById('row-'+idx).classList.add('sel');
-    document.getElementById('row-'+idx).scrollIntoView({behavior:'smooth',block:'nearest'});
-  }
-  updatePreview();
+async function delHist(i) {
+  sentHistory.splice(i,1);
+  renderHist();
+  await saveHistory();
 }
 
-function toggleFromTable(idx,cb){
-  const btn = document.querySelector('.pb[data-idx="'+idx+'"]');
-  if(cb.checked){
-    selected.add(idx);
-    if(btn) btn.classList.add('active');
-    document.getElementById('row-'+idx).classList.add('sel');
-  } else {
-    selected.delete(idx);
-    if(btn) btn.classList.remove('active');
-    document.getElementById('row-'+idx).classList.remove('sel');
-  }
-  updatePreview();
+async function clearHist() {
+  if (!confirm('Clear all sent email history?')) return;
+  sentHistory = [];
+  renderHist();
+  await saveHistory();
 }
 
-function selectAll(){
-  PRODUCTS.forEach(function(_,i){
-    selected.add(i);
-    const btn = document.querySelector('.pb[data-idx="'+i+'"]');
-    if(btn) btn.classList.add('active');
-    const cb = document.querySelector('#row-'+i+' input[type=checkbox]');
-    if(cb) cb.checked = true;
-    document.getElementById('row-'+i).classList.add('sel');
+// ═══════════════════════════════════════════════════════════════════════════
+// ORD DUPLICATE CHECK
+// ═══════════════════════════════════════════════════════════════════════════
+let _lastWarnedOrd = '';
+function onOrdInput() {
+  autoPreview();
+  const ord = val('f-ord');
+  if (!ord || ord === _lastWarnedOrd) return;
+  const found = sentHistory.find(h => h.ord.toLowerCase() === ord.toLowerCase());
+  if (found) {
+    _lastWarnedOrd = ord;
+    document.getElementById('dup-msg').textContent =
+      `ORD "${found.ord}" was previously sent to ${found.email} on ${found.date}. Any further emails for this ORD should be considered a duplicate.`;
+    document.getElementById('dup-modal').classList.add('on');
+  } else {
+    _lastWarnedOrd = '';
+  }
+}
+function closeModal() { document.getElementById('dup-modal').classList.remove('on'); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  loadCfg();
+  renderRows();
+  renderTable();
+  loadHistory();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BUTTON ROWS
+// ═══════════════════════════════════════════════════════════════════════════
+function renderRows() {
+  const sec = document.getElementById('btn-section');
+  sec.innerHTML = '';
+  ROWS.forEach((row, ri) => {
+    if (ri > 0) { const sep = document.createElement('hr'); sep.className='row-sep'; sec.appendChild(sep); }
+    const grp = document.createElement('div'); grp.className='btn-grp';
+    row.prods.forEach(prod => {
+      if (!ALL_PRODS.includes(prod)) return;
+      const btn = document.createElement('button');
+      btn.className = 'pb'; btn.dataset.prod = prod;
+      btn.innerHTML = `<span class="ic"></span>${esc(prod)}`;
+      btn.addEventListener('click', () => toggleProd(prod, btn));
+      grp.appendChild(btn);
+    });
+    sec.appendChild(grp);
   });
-  updatePreview();
 }
 
-function clearSel(){
+function toggleProd(prod, btn) {
+  if (selected.has(prod)) { selected.delete(prod); btn.classList.remove('active'); }
+  else                     { selected.add(prod);    btn.classList.add('active');   }
+  autoPreview();
+}
+
+function clearSel() {
   selected.clear();
-  document.querySelectorAll('.pb').forEach(function(b){ b.classList.remove('active'); });
-  document.querySelectorAll('#tbl-body input[type=checkbox]').forEach(function(c){ c.checked=false; });
-  document.querySelectorAll('#tbl-body tr').forEach(function(r){ r.classList.remove('sel'); });
-  updatePreview();
+  document.querySelectorAll('.pb').forEach(b => b.classList.remove('active'));
+  autoPreview();
 }
 
-// ══════════════════════════════════════════════
-//  EMAIL BUILDER
-// ══════════════════════════════════════════════
-function getSelProds(){
-  const arr = [];
-  const sorted = Array.from(selected).sort(function(a,b){return a-b;});
-  sorted.forEach(function(i){ arr.push(PRODUCTS[i]); });
-  return arr;
-}
-
-function buildEmailParts(){
-  const ord   = document.getElementById('ord').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const prods = getSelProds();
-  const subject = 'BinMaster Preparation ' + ord;
-  const prodNames = prods.map(function(p){ return p.name; }).join(', ');
-
-  let body = '';
-  body += email + '\r\n';
-  body += prodNames + '\r\n';
-  body += 'Greetings!\r\n';
-  body += 'Thanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\r\n';
-  prods.forEach(function(p){
-    body += p.url ? p.name+' \u2013 '+p.url+'\r\n' : p.name+'\r\n';
+// ═══════════════════════════════════════════════════════════════════════════
+// PRODUCT TABLE
+// ═══════════════════════════════════════════════════════════════════════════
+function renderTable() {
+  const tbody = document.getElementById('prod-tbody');
+  tbody.innerHTML = '';
+  RAW.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td class="td-prod">${esc(r.product)}</td>`+
+      `<td contenteditable="true" oninput="RAW[${i}].name=this.innerText;autoPreview()">${esc(r.name)}</td>`+
+      `<td class="td-url" contenteditable="true" oninput="RAW[${i}].url=this.innerText.trim();autoPreview()">${esc(r.url)}</td>`+
+      `<td class="td-info" contenteditable="true"></td>`;
+    tbody.appendChild(tr);
   });
-  body += 'Remember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech.\r\n';
-  body += '\r\n';
-  body += 'BinMaster Technical Support\r\n';
-  body += 'https://www.binmaster.com\r\n';
-  body += '402-434-9102\r\n';
-  body += '3435 Schworer Dr\r\n';
-  body += 'Lincoln, NE 68504';
-
-  return {subject:subject, body:body, email:email};
 }
 
-function updatePreview(){
-  const el = document.getElementById('preview');
-  const parts = buildEmailParts();
-  const prods = getSelProds();
-  if(!prods.length && !document.getElementById('ord').value.trim()){
-    el.textContent = 'Select products and fill in the fields above, then click Generate.';
-    el.classList.remove('has');
+function exportJSON() {
+  const out = RAW.map(r => ({product:r.product, name:r.name, url:r.url}));
+  Object.entries(PROTIPS).forEach(([prod, tips]) => {
+    tips.forEach(tip => out.push({product:prod, type:"protip", tip}));
+  });
+  const blob = new Blob([JSON.stringify(out, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'product.json'; a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PREVIEW
+// ═══════════════════════════════════════════════════════════════════════════
+function autoPreview() {
+  const ord   = val('f-ord');
+  const email = val('f-email');
+  const name  = val('f-name');
+  const prods = getSelOrdered();
+  const box   = document.getElementById('preview-box');
+
+  if (!ord && !email && !name && !prods.length) {
+    box.innerHTML = '<div class="prev-empty">Fill in recipient info and select products &mdash; preview updates automatically.</div>';
     return;
   }
-  el.textContent = 'TO: '+(parts.email||'(no email)')+'\nSUBJECT: '+parts.subject+'\n\n'+parts.body;
-  el.classList.add('has');
+
+  const prodLine = prods.length
+    ? prods.map(p => `<strong>${esc(p)}</strong>`).join(', ')
+    : '<em style="color:#A0AABB;">[no products selected]</em>';
+
+  let linkHTML = '';
+  prods.forEach(p => {
+    linksFor(p).forEach(lnk => {
+      const {prefix, last} = splitLast(lnk.name);
+      linkHTML += `&nbsp;&nbsp;&nbsp;&nbsp;${prefix ? esc(prefix)+' &ndash; ' : ''}<a href="${escA(lnk.url)}"${lnk.url.startsWith('mailto:')?'':' target="_blank"'}>${esc(last)}</a><br>`;
+    });
+    linkHTML += '<br>';
+  });
+
+  const seenTips = new Set();
+  let ptHTML = '';
+  prods.forEach(p => {
+    (PROTIPS[p]||[]).forEach(tip => {
+      if (!seenTips.has(tip)) { seenTips.add(tip); ptHTML += `<span class="pt-line"><strong>Protip:</strong> ${esc(tip)}</span><br><br>`; }
+    });
+  });
+
+  const CR = `<span style="background:#FFE500;padding:0 2px;border-radius:2px;font-size:10px;color:#333;">&lt;CR&gt;</span><br>`;
+
+  box.innerHTML =
+    `<div class="prev-meta"><div><b>To:</b> ${esc(email||'[email address]')}</div><div><b>Subject:</b> BinMaster Preparation ${esc(ord||'[ORD]')}</div></div>`+
+    `${esc(email||'[email address]')}<br>${prodLine}<br>${CR}`+
+    `Hi ${esc(name||'[Name]')},<br>${CR}`+
+    `Thanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.<br>${CR}`+
+    linkHTML + ptHTML + CR +
+    `Remember to bookmark <a href="https://support.binmaster.com/" target="_blank">https://support.binmaster.com/</a> if you need to chat, search our knowledge base, or contact BinMaster Tech.<br>${CR}`+
+    `BinMaster Technical Support<br><a href="https://www.binmaster.com" target="_blank">https://www.binmaster.com</a><br>402-434-9102<br>3435 Schworer Dr<br>Lincoln, NE 68504`;
 }
 
-// ══════════════════════════════════════════════
-//  GENERATE
-// ══════════════════════════════════════════════
-function generate(){
-  const ord   = document.getElementById('ord').value.trim();
-  const email = document.getElementById('email').value.trim();
+// ═══════════════════════════════════════════════════════════════════════════
+// COPY BODY & OPEN EMAIL
+// ═══════════════════════════════════════════════════════════════════════════
+async function copyBodyOpen() {
+  const ord   = val('f-ord');
+  const email = val('f-email');
+  const name  = val('f-name');
+  const prods = getSelOrdered();
+  if (!email)        { toast('Please enter an email address.'); return; }
+  if (!prods.length) { toast('Please select at least one product.'); return; }
 
-  let ok = true;
-  if(!ord){  document.getElementById('ord').classList.add('err');   ok=false; }
-  else       document.getElementById('ord').classList.remove('err');
-  if(!email){ document.getElementById('email').classList.add('err'); ok=false; }
-  else        document.getElementById('email').classList.remove('err');
-  if(!ok) return;
-  if(!selected.size){ alert('Please select at least one product.'); return; }
+  const htmlBody = buildHTML(ord, email, name, prods);
+  const plain    = buildPlain(ord, email, name, prods);
+  const subj     = encodeURIComponent(`BinMaster Preparation ${ord||'[ORD]'}`);
+  const mailto   = `mailto:${encodeURIComponent(email)}?subject=${subj}`;
 
-  const hist = getHistory();
-  const dup  = hist.find(function(h){ return h.ord===ord; });
-  if(dup){
-    const d = new Date(dup.date);
-    document.getElementById('dup-msg').innerHTML =
-      'ORD <strong>'+escHtml(ord)+'</strong> was already sent on <strong>'+
-      d.toLocaleDateString()+' '+d.toLocaleTimeString()+'</strong> to <strong>'+
-      escHtml(dup.email)+'</strong>.<br>Do you want to send it again?';
-    document.getElementById('dup-overlay').classList.add('open');
+  if (window.ClipboardItem) {
+    const item = new ClipboardItem({
+      'text/html' : new Blob([htmlBody], {type:'text/html'}),
+      'text/plain': new Blob([plain],    {type:'text/plain'})
+    });
+    navigator.clipboard.write([item])
+      .then(async () => { await recordSent(ord, email); toast('\u2713 Formatted body copied! Opening mail client\u2026 Paste (Ctrl+V) into the body.'); setTimeout(() => { window.location.href = mailto; }, 800); })
+      .catch(() => fbCopy(plain, mailto, ord, email));
+  } else {
+    fbCopy(plain, mailto, ord, email);
+  }
+}
+
+async function fbCopy(plain, mailto, ord, email) {
+  navigator.clipboard.writeText(plain)
+    .then(async () => { await recordSent(ord, email); toast('Plain text copied. Opening mail client\u2026'); setTimeout(() => { window.location.href = mailto; }, 800); })
+    .catch(() => toast('Clipboard failed \u2014 try Generate & Open In Mail.'));
+}
+
+async function genMailto() {
+  const ord   = val('f-ord');
+  const email = val('f-email');
+  const name  = val('f-name');
+  const prods = getSelOrdered();
+  if (!email)        { toast('Please enter an email address.'); return; }
+  if (!prods.length) { toast('Please select at least one product.'); return; }
+
+  const plain = buildPlain(ord, email, name, prods);
+  const subj  = encodeURIComponent(`BinMaster Preparation ${ord||'[ORD]'}`);
+  const body  = encodeURIComponent(plain);
+  const full  = `mailto:${encodeURIComponent(email)}?subject=${subj}&body=${body}`;
+
+  await recordSent(ord, email);
+
+  if (full.length > 8000) {
+    toast('Body too long for direct mailto \u2014 use COPY BODY & OPEN EMAIL and paste for best results.');
+    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${subj}`;
     return;
   }
-  doGenerate();
+  window.location.href = full;
 }
 
-function closeModal(){
-  document.getElementById('dup-overlay').classList.remove('open');
-}
-
-function proceedAnyway(){
-  closeModal();
-  doGenerate();
-}
-
-function doGenerate(){
-  const parts = buildEmailParts();
-  const ord   = document.getElementById('ord').value.trim();
-  const prods = getSelProds();
-
-  // save history
-  const hist = getHistory();
-  hist.unshift({
-    ord:   ord,
-    email: parts.email,
-    prods: prods.map(function(p){ return p.name; }),
-    date:  new Date().toISOString()
+// ═══════════════════════════════════════════════════════════════════════════
+// BUILD HTML / PLAIN TEXT
+// ═══════════════════════════════════════════════════════════════════════════
+function buildHTML(ord, email, name, prods) {
+  let linkLines = '';
+  prods.forEach(p => {
+    linksFor(p).forEach(lnk => {
+      const {prefix, last} = splitLast(lnk.name);
+      linkLines += `&nbsp;&nbsp;&nbsp;&nbsp;${prefix ? escH(prefix)+' &ndash; ' : ''}<a href="${escA(lnk.url)}">${escH(last)}</a><br>\n`;
+    });
+    linkLines += '<br>\n';
   });
-  saveHistory(hist);
-  renderHistory();
-
-  // build mailto - encode body carefully
-  const rawBody = parts.body.replace(/\r\n/g,'\n');
-  const encodedBody = encodeURIComponent(rawBody);
-  const encodedSubj = encodeURIComponent(parts.subject);
-  const encodedTo   = encodeURIComponent(parts.email);
-  const href = 'mailto:'+encodedTo+'?subject='+encodedSubj+'&body='+encodedBody;
-
-  const a = document.createElement('a');
-  a.href = href;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  showToast('Email client opened!');
-}
-
-// ══════════════════════════════════════════════
-//  HISTORY
-// ══════════════════════════════════════════════
-function renderHistory(){
-  const el   = document.getElementById('hist-list');
-  const hist = getHistory();
-  if(!hist.length){
-    el.innerHTML = '<div class="hi-empty">No emails sent yet.</div>';
-    return;
-  }
-  el.innerHTML = hist.map(function(h){
-    const d     = new Date(h.date);
-    const prods = (h.prods||[]).join(', ');
-    return '<div class="hi">'+
-      '<div class="hi-ord">ORD: '+escHtml(h.ord)+'</div>'+
-      '<div class="hi-email">'+escHtml(h.email)+'</div>'+
-      '<div class="hi-prods">'+escHtml(prods||'\u2014')+'</div>'+
-      '<div class="hi-date">'+d.toLocaleDateString()+' '+d.toLocaleTimeString()+'</div>'+
-      '</div>';
-  }).join('');
-}
-
-function clearHistory(){
-  if(confirm('Clear all sent history? This cannot be undone.')){
-    localStorage.removeItem('bm_history');
-    renderHistory();
-  }
-}
-
-function exportHistory(){
-  const hist = getHistory();
-  if(!hist.length){ alert('No history to export.'); return; }
-  let csv = 'ORD Number,Email,Products,Date Sent\n';
-  hist.forEach(function(h){
-    const prods = (h.prods||[]).join('; ');
-    const d = new Date(h.date).toLocaleString();
-    csv += '"'+h.ord+'","'+h.email+'","'+prods+'","'+d+'"\n';
+  const seenTips = new Set();
+  let ptLines = '';
+  prods.forEach(p => {
+    (PROTIPS[p]||[]).forEach(tip => {
+      if (!seenTips.has(tip)) { seenTips.add(tip); ptLines += `<p><em><strong>Protip:</strong> ${escH(tip)}</em></p>\n`; }
+    });
   });
-  const blob = new Blob([csv],{type:'text/csv'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = 'binmaster_sent_history.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  return `<html><body style="font-family:Segoe UI,Arial,sans-serif;font-size:13px;line-height:1.8;color:#222;">
+<p>${escH(email)}</p><p>${escH(prods.join(', '))}</p>
+<p>Hi ${escH(name)},</p>
+<p>Thanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.</p>
+<p style="margin:0;">${linkLines}</p>${ptLines}
+<p>Remember to bookmark <a href="https://support.binmaster.com/">https://support.binmaster.com/</a> if you need to chat, search our knowledge base, or contact BinMaster Tech.</p>
+<p>BinMaster Technical Support<br><a href="https://www.binmaster.com">https://www.binmaster.com</a><br>402-434-9102<br>3435 Schworer Dr<br>Lincoln, NE 68504</p>
+</body></html>`;
 }
 
-// ══════════════════════════════════════════════
-//  UTILS
-// ══════════════════════════════════════════════
-function clearAll(){
-  document.getElementById('ord').value = '';
-  document.getElementById('email').value = '';
-  clearSel();
-  PRODUCTS.forEach(function(p){ p.info=''; });
-  document.querySelectorAll('.td-info input').forEach(function(el){ el.value=''; });
-  var prev = document.getElementById('preview');
-  prev.textContent = 'Select products and fill in the fields above, then click Generate.';
-  prev.classList.remove('has');
+function buildPlain(ord, email, name, prods) {
+  let linkLines = '';
+  prods.forEach(p => {
+    linksFor(p).forEach(lnk => {
+      const {prefix, last} = splitLast(lnk.name);
+      linkLines += `    ${prefix ? prefix+' - ' : ''}${last} - ${lnk.url}\r\n`;
+    });
+    linkLines += '\r\n';
+  });
+  const seenTips = new Set();
+  let ptLines = '';
+  prods.forEach(p => {
+    (PROTIPS[p]||[]).forEach(tip => {
+      if (!seenTips.has(tip)) { seenTips.add(tip); ptLines += `Protip: ${tip}\r\n\r\n`; }
+    });
+  });
+  return `${email}\r\n\r\n${prods.join(', ')}\r\n\r\nHi ${name},\r\n\r\n`+
+    `Thanks again for choosing BinMaster for your state-of-the-art level measurement system. Looking ahead to your system, we figure you could use some resources.\r\n\r\n`+
+    linkLines+ptLines+
+    `Remember to bookmark https://support.binmaster.com/ if you need to chat, search our knowledge base, or contact BinMaster Tech.\r\n\r\n`+
+    `BinMaster Technical Support\r\nhttps://www.binmaster.com\r\n402-434-9102\r\n3435 Schworer Dr\r\nLincoln, NE 68504`;
 }
 
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); },3000);
+// ═══════════════════════════════════════════════════════════════════════════
+// ADD ROW
+// ═══════════════════════════════════════════════════════════════════════════
+let _addType = 'link';
+function setAddType(type) {
+  _addType = type;
+  document.getElementById('tog-link').className = type === 'link' ? 'active-link' : '';
+  document.getElementById('tog-tip').className  = type === 'tip'  ? 'active-tip'  : '';
+  const urlInput = document.getElementById('ar-url');
+  const nameNote = document.getElementById('ar-name-note');
+  const nameLbl  = document.getElementById('ar-name-label');
+  if (type === 'tip') {
+    urlInput.value=''; urlInput.disabled=true; urlInput.classList.add('protip-active');
+    nameLbl.textContent='Protip Text'; nameNote.textContent='Enter the full protip text — URL not needed';
+    document.getElementById('ar-name').placeholder='e.g. Water and radars do not mix...';
+  } else {
+    urlInput.disabled=false; urlInput.classList.remove('protip-active');
+    nameLbl.textContent='Link Text / Name'; nameNote.textContent='For a Protip, switch type above';
+    document.getElementById('ar-name').placeholder='e.g. NCR Quick Start Guide';
+    document.getElementById('ar-url').placeholder='https://...';
+  }
 }
 
-function escHtml(str){
-  return String(str||'')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+function addTableRow() {
+  const prod = document.getElementById('ar-prod').value.trim();
+  const name = document.getElementById('ar-name').value.trim();
+  const url  = document.getElementById('ar-url').value.trim();
+  if (!prod) { toast('Please enter a Product name.'); document.getElementById('ar-prod').focus(); return; }
+  if (!name) { toast(_addType==='tip'?'Please enter the Protip text.':'Please enter a Link Text / Name.'); document.getElementById('ar-name').focus(); return; }
+  if (_addType==='link' && !url) { toast('Please enter a URL.'); document.getElementById('ar-url').focus(); return; }
+
+  if (_addType === 'tip') {
+    if (!PROTIPS[prod]) PROTIPS[prod]=[];
+    PROTIPS[prod].push(name);
+    const tbody=document.getElementById('prod-tbody');
+    const tr=document.createElement('tr'); tr.style.background='#FFFDF0';
+    tr.innerHTML=`<td class="td-prod" style="color:var(--gold);">${esc(prod)} <span style="font-size:9px;font-weight:400;">[protip]</span></td>`+
+      `<td style="font-style:italic;color:#666;" colspan="2">${esc(name)}</td>`+
+      `<td><button class="del-btn" title="Remove protip" onclick="removeProtipRow(this,'${esc(prod).replace(/'/g,"\\'")}','${name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">&times;</button></td>`;
+    tbody.appendChild(tr);
+    toast(`\u2713 Protip added for "${prod}". Export product.json to make permanent.`);
+  } else {
+    const newEntry={product:prod, name, url};
+    RAW.push(newEntry);
+    const tbody=document.getElementById('prod-tbody');
+    const i=RAW.length-1;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="td-prod">${esc(prod)}</td>`+
+      `<td contenteditable="true" oninput="RAW[${i}].name=this.innerText;autoPreview()">${esc(name)}</td>`+
+      `<td class="td-url" contenteditable="true" oninput="RAW[${i}].url=this.innerText.trim();autoPreview()">${esc(url)}</td>`+
+      `<td class="td-info" contenteditable="true"></td>`;
+    tbody.appendChild(tr);
+    autoPreview();
+    toast(`\u2713 Link row added for "${prod}". Export product.json to make permanent.`);
+  }
+  document.getElementById('ar-prod').value='';
+  document.getElementById('ar-name').value='';
+  document.getElementById('ar-url').value='';
+}
+
+function removeProtipRow(btn, prod, tip) {
+  if (PROTIPS[prod]) { PROTIPS[prod]=PROTIPS[prod].filter(t=>t!==tip); if(!PROTIPS[prod].length) delete PROTIPS[prod]; }
+  btn.closest('tr').remove(); autoPreview();
+  toast(`Protip removed for "${prod}".`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════════════
+function getSelOrdered() {
+  const order = ROWS.flatMap(r => r.prods);
+  const result = order.filter(p => selected.has(p));
+  selected.forEach(p => { if (!result.includes(p)) result.push(p); });
+  return [...new Set(result)];
+}
+function linksFor(prod) { return RAW.filter(r => r.product === prod); }
+function splitLast(name) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length===1) return {prefix:'', last:parts[0]};
+  return {prefix: parts.slice(0,-1).join(' '), last: parts[parts.length-1]};
+}
+function val(id)  { return document.getElementById(id).value.trim(); }
+function esc(s)   { return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escH(s)  { return esc(s); }
+function escA(s)  { return s==null?'':String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+let _ttTimer;
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('on');
+  clearTimeout(_ttTimer);
+  _ttTimer=setTimeout(()=>t.classList.remove('on'),5000);
 }
 </script>
 </body>
